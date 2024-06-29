@@ -1,0 +1,6 @@
+{
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "C_Cpp.formatting": "vcFormat"
+}
