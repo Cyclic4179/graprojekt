@@ -1,4 +1,5 @@
 #include "main.h"
+#include "util.h"
 
 
 /// @brief main function
@@ -121,7 +122,7 @@ void write(struct ELLPACK matrix, void* result) {
 /// @param fileSize size of file in Bytes
 /// @param string pointer for result
 void readFile(char* filePath, long fileSize, char* string) {
-    FILE* file = fopen(filePath, "r");
+    FILE* file = abortIfNULL(fopen(filePath, "r"));
     fread(string, fileSize, 1, file);
     fclose(file);
     string[fileSize - 1] = 0;
@@ -148,12 +149,12 @@ void test(int nr) {
         return;
     }
 
-    char* leftString = malloc(fileSizeLeft);
+    char* leftString = abortIfNULL(malloc(fileSizeLeft));
     readFile(filePathLeft, fileSizeLeft, leftString);
-    char* rightString = malloc(fileSizeRight);
+    char* rightString = abortIfNULL(malloc(fileSizeRight));
     readFile(filePathRight, fileSizeRight, rightString);
 
-    char* result = malloc(fileSizeLeft + fileSizeRight); // TODO real values
+    char* result = abortIfNULL(malloc(fileSizeLeft + fileSizeRight)); // TODO real values
 
     matr_mult_ellpack((void*)leftString, (void*)rightString, (void*)result);
 
