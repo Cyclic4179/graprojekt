@@ -17,6 +17,12 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     printf("%lu\n", aE.noRows);
     printf("%lu\n", aE.noCols);
     printf("%lu\n", aE.maxNoNonZero);
+    printf("%f\n", aE.values[0]);
+    printf("%f\n", aE.values[1]);
+    printf("%f\n", aE.values[2]);
+    printf("%lu\n", aE.colPositions[0]);
+    printf("%lu\n", aE.colPositions[1]);
+    printf("%lu\n", aE.colPositions[2]);
 }
 
 /// @brief helper: read int from string
@@ -25,19 +31,30 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
 /// @param end character after int
 /// @param field_for_error part of error message
 /// @return read int
-int helper_read_int(const char* string, long* pos, char end, char* field_for_error) {
+int helper_read_int(const char* string, long* pos, char end, char* field_for_error, int line) {
     int res = 0;
-    while (string[(*pos)] != end)
+    if (line != 1 && string[(*pos)] == '*')
     {
-        if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
+        if (string[(*pos) + 1] != end)
         {
-            res = (res * 10) + (string[(*pos)] - '0');
-            (*pos)++;
-        }
-        else
-        {
-            fprintf(stderr, "<%s> contains illegal character: %c\n", field_for_error, string[(*pos)]);
+            fprintf(stderr, "<%s> contains illegal character after *: %c\n", field_for_error, string[(*pos + 1)]);
             exit(EXIT_FAILURE);
+        }
+        (*pos)++;
+    }
+    else {
+        while (string[(*pos)] != end)
+        {
+            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
+            {
+                res = (res * 10) + (string[(*pos)] - '0');
+                (*pos)++;
+            }
+            else
+            {
+                fprintf(stderr, "<%s> contains illegal character: %c\n", field_for_error, string[(*pos)]);
+                exit(EXIT_FAILURE);
+            }
         }
     }
     return res;
@@ -52,14 +69,33 @@ struct ELLPACK read_validate(const void* file) {
     struct ELLPACK result = {};
     long pos = 0;
 
-    result.noRows = helper_read_int(string, &pos, ',', "noRows");
+    result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;
 
-    result.noCols = helper_read_int(string, &pos, ',', "noCols");
+    result.noCols = helper_read_int(string, &pos, ',', "noCols", 1);
     pos++;
 
-    result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero");
+    result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero", 1);
     pos++;
+
+    long itemsCount = result.noRows * result.maxNoNonZero;
+
+    // ! NOT FOR FLOATS
+    result.values = (float*)abortIfNULL(malloc(itemsCount * sizeof(float)));
+    for (long i = 0; i < itemsCount; i++)
+    {
+        char end = i == itemsCount - 1 ? '\n' : ',';
+        result.values[i] = helper_read_int(string, &pos, end, "values", 2);
+        pos++;
+    }
+
+    result.colPositions = (uint64_t*)abortIfNULL(malloc(itemsCount * sizeof(uint64_t)));
+    for (long i = 0; i < itemsCount; i++)
+    {
+        char end = i == itemsCount - 1 ? '\n' : ',';
+        result.colPositions[i] = helper_read_int(string, &pos, end, "colPositions", 3);
+        pos++;
+    }
 
     return result;
 }
