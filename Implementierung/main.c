@@ -11,6 +11,35 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     struct ELLPACK bE = read_validate(b);
     struct ELLPACK res = multiply(aE, bE);
     write(res, result);
+
+    // ! DEBUG
+    printf("%lu\n", aE.noRows);
+    printf("%lu\n", aE.noCols);
+    printf("%lu\n", aE.maxNoNonZero);
+}
+
+/// @brief helper: read int from string
+/// @param string string
+/// @param pos current position in string
+/// @param end character after int
+/// @param field_for_error part of error message
+/// @return read int
+int helper_read_int(const char* string, long* pos, char end, char* field_for_error) {
+    int res = 0;
+    while (string[(*pos)] != end)
+    {
+        if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
+        {
+            res = (res * 10) + (string[(*pos)] - '0');
+            (*pos)++;
+        }
+        else
+        {
+            fprintf(stderr, "<%s> contains illegal character: %c\n", field_for_error, string[(*pos)]);
+            exit(EXIT_FAILURE);
+        }
+    }
+    return res;
 }
 
 /// @brief reads and validates a matrix
@@ -18,6 +47,20 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
 /// @result matrix in ELLPACK format
 struct ELLPACK read_validate(const void* file) {
     // TODO
+    const char* string = file;
+    struct ELLPACK result = {};
+    long pos = 0;
+
+    result.noRows = helper_read_int(string, &pos, ',', "noRows");
+    pos++;
+
+    result.noCols = helper_read_int(string, &pos, ',', "noCols");
+    pos++;
+
+    result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero");
+    pos++;
+
+    return result;
 }
 
 /// @brief multiplies the matrices
@@ -73,42 +116,50 @@ void write(struct ELLPACK matrix, void* result) {
     // TODO
 }
 
+/// @brief helper: read a file to a pointer
+/// @param filePath path to file
+/// @param fileSize size of file in Bytes
+/// @param string pointer for result
+void readFile(char* filePath, long fileSize, char* string) {
+    FILE* file = fopen(filePath, "r");
+    fread(string, fileSize, 1, file);
+    fclose(file);
+    string[fileSize - 1] = 0;
+}
+
 /// @brief tests the function `matr_mult_ellpack`
 /// @param nr test in `./sample-inputs/` to execute
 void test(int nr) {
-    // TODO
-    uint64_t leftColPos[] = { 1, 2, 3, 1, 2, 3 };
-    float leftVals[] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f };
-    uint64_t rightColPos[] = { 1, 1, 1 };
-    float rightVals[] = { 1.f, 2.f, 3.f };
-    struct ELLPACK left = { .noRows = 2, .noCols = 3, .maxNoNonZero = 3, .colPositions = leftColPos, .values = leftVals };
-    struct ELLPACK right = { .noRows = 3, .noCols = 1, .maxNoNonZero = 1, .colPositions = rightColPos, .values = rightVals };
-    struct ELLPACK result = { .noRows = 0, .noCols = 0, .maxNoNonZero = 0, .colPositions = malloc(10 * sizeof(uint64_t)), .values = malloc(10 * sizeof(float)) };
-    if (result.colPositions == NULL || result.values == NULL)
+    char* filePathLeft;
+    long fileSizeLeft;
+    char* filePathRight;
+    long fileSizeRight;
+
+    switch (nr)
     {
-        if (result.colPositions != NULL)
-        {
-            free(result.colPositions);
-        }
-        if (result.values != NULL)
-        {
-            free(result.values);
-        }
-        fprintf(stderr, "Error allocating memory");
-        EXIT_FAILURE;
+    case 1:
+        filePathLeft = "./Implementierung/sample-inputs/1.txt";
+        fileSizeLeft = 40;
+        filePathRight = "./Implementierung/sample-inputs/1.txt";
+        fileSizeRight = 40;
+        break;
+
+    default:
+        return;
     }
-    else
-    {
-        multiply(left, right, result);
-        printf("%lu, %lu, %lu", result.noRows, result.noCols, result.maxNoNonZero);
-        for (int i = 0; i < 2; i++)
-        {
-            printf("%f, %lu", result.values[i], result.colPositions[i]);
-        }
-        free(result.colPositions);
-        free(result.values);
-        EXIT_SUCCESS;
-    }
+
+    char* leftString = malloc(fileSizeLeft);
+    readFile(filePathLeft, fileSizeLeft, leftString);
+    char* rightString = malloc(fileSizeRight);
+    readFile(filePathRight, fileSizeRight, rightString);
+
+    char* result = malloc(fileSizeLeft + fileSizeRight); // TODO real values
+
+    matr_mult_ellpack((void*)leftString, (void*)rightString, (void*)result);
+
+    free(leftString);
+    free(rightString);
+    free(result);
 }
 
 int main()
