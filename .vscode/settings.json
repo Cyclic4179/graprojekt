@@ -1,4 +1,16 @@
 {
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.indentSize": 4,
+    "editor.insertSpaces": true,
+    "editor.rulers": [80, 120],
+    "editor.tabSize": 4,
+    "editor.useTabStops": false,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "gitlens.plusFeatures.enabled": false,
+    "gitlens.statusBar.enabled": false,
     "[c]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
