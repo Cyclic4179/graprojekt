@@ -1,0 +1,3 @@
+/mnt/c/Users/Simon/CLionProjects/gra24capsprojekt-t086/cmake-build-debug/CMakeFiles/gra24capsprojekt_t086.dir
+/mnt/c/Users/Simon/CLionProjects/gra24capsprojekt-t086/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/c/Users/Simon/CLionProjects/gra24capsprojekt-t086/cmake-build-debug/CMakeFiles/rebuild_cache.dir
