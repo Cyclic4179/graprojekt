@@ -1,15 +1,5 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
+#include "main.h"
 
-struct ELLPACK
-{
-    uint64_t noRows;
-    uint64_t noCols;
-    uint64_t maxNoNonZero;
-    uint64_t* colPositions;
-    float* values;
-};
 
 /// @brief main function
 /// @param a matrix a
