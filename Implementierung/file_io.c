@@ -166,8 +166,12 @@ void write(struct ELLPACK matrix, FILE* file) {
             fprintf(file, "%g,", matrix.values[index++]);
         }
     }
-    fseek(file, -1, SEEK_CUR);
-    fputs("\n", file);
+    if (file == stdout) {
+        fputs("\33[D \n", file);
+    } else {
+        fseek(file, -1, SEEK_CUR);
+        fputs("\n", file);
+    }
 
     index = 0;
     for (i = 0; i < matrix.noRows; i++) {
@@ -180,8 +184,12 @@ void write(struct ELLPACK matrix, FILE* file) {
             fprintf(file, "%lu,", matrix.indices[index++]);
         }
     }
-    fseek(file, -1, SEEK_CUR);
-    fputs("\n", file);
+    if (file == stdout) {
+        fputs("\33[D \n", file);
+    } else {
+        fseek(file, -1, SEEK_CUR);
+        fputs("\n", file);
+    }
 }
 
 // /// @brief helper: read a file to a pointer
