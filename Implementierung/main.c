@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <getopt.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -68,7 +70,6 @@ int main(int argc, char** argv) {
         {0, 0, 0, 0} // required (man 3 getopt_long)
     };
 
-    char* ptr = 0;
     while ((opt = getopt_long(argc, argv, "V:B::a:b:o:h", long_opts, NULL)) != -1) {
         switch (opt) {
             case 'V':
@@ -95,6 +96,8 @@ int main(int argc, char** argv) {
                 exit(EXIT_FAILURE);
         }
     }
+
+    // TODO things
 
     exit(EXIT_SUCCESS);
 }
