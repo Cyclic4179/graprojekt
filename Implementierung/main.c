@@ -7,7 +7,9 @@
 #include <errno.h>
 
 #include "mult.h"
+#include "file_io.h"
 #include "ellpack.h"
+#include "util.h"
 
 
 const char* usage_msg =
@@ -60,7 +62,7 @@ int main(int argc, char** argv) {
     int opt;
     char *a,
          *b,
-         *out = "./result";
+         *out;
     int impl_version = 0;
     bool timeit = false;
     int rounds = 1;
@@ -97,7 +99,24 @@ int main(int argc, char** argv) {
         }
     }
 
+    abortIfNULL_msg(a, "(fixmelater) for now, a must be set");
+    abortIfNULL_msg(b, "(fixmelater) for now, b must be set");
+    abortIfNULL_msg(out, "(fixmelater) for now, out must be set");
+
     // TODO things
+    FILE* file_a = abortIfNULL(fopen(a, "r"));
+    FILE* file_b = abortIfNULL(fopen(b, "r"));
+    const struct ELLPACK a_lpk = read_validate(file_a);
+    const struct ELLPACK b_lpk = read_validate(file_b);
+    fclose(file_a);
+    fclose(file_b);
+
+    struct ELLPACK res_lpk;
+    matr_mult_ellpack(&a_lpk, &b_lpk, &res_lpk);
+
+    FILE* file_out = abortIfNULL(fopen(out, "w"));
+    write(res_lpk, file_out);
+    fclose(file_out);
 
     exit(EXIT_SUCCESS);
 }

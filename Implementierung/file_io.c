@@ -1,6 +1,7 @@
 #include "file_io.h"
 #include "util.h"
 #include "ellpack.h"
+#include <stdio.h>
 
 /// @brief helper: read int from string
 /// @param string string
@@ -99,11 +100,15 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
 /// @result matrix in ELLPACK format
-struct ELLPACK read_validate(const void* file) {
+struct ELLPACK read_validate(FILE* file) {
     // TODO change file to FILE*
-    const char* string = file;
+    // TODO better version later
+    char string[1024];
     struct ELLPACK result = {};
     long pos = 0;
+
+    fread(string, 1, sizeof(string), file);
+    printf("%s\n", string);
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;
@@ -138,8 +143,8 @@ struct ELLPACK read_validate(const void* file) {
 /// @brief writes the matrix to the file
 /// @param matrix matrix to convert
 /// @param result pointer to file
-void write(struct ELLPACK matrix, void* result) {
-    FILE* file = abortIfNULL(fopen(result, "w"));
+void write(struct ELLPACK matrix, FILE* file) {
+    //FILE* file = abortIfNULL(fopen(result, "w"));
     uint64_t index, i, j;
 
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
