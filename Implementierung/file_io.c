@@ -65,7 +65,13 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
                 }
                 else
                 {
-                    res += (string[(*pos)] - '0') / pow(10, decimal_place);
+                    int decimal_place_tmp = decimal_place;
+                    float ten = 0.0f;
+                    while (decimal_place_tmp != 0) {
+                        ten *= 10;
+                        --decimal_place_tmp;
+                    }
+                    res += (string[(*pos)] - '0') / ten;
                     decimal_place++;
                 }
                 (*pos)++;
