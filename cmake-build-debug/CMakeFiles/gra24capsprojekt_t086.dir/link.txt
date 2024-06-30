@@ -1,1 +1,0 @@
-/usr/bin/gcc -g CMakeFiles/gra24capsprojekt_t086.dir/Implementierung/main.c.o -o gra24capsprojekt_t086 

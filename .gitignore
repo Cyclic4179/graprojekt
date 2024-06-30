@@ -5,6 +5,13 @@
 build
 
 #
+# clion
+#
+./cmake-build-debug
+./CMakeLists.txt
+./.idea
+
+#
 # https://github.com/github/gitignore/blob/main/C.gitignore
 #
 
