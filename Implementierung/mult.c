@@ -53,6 +53,7 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
     free(maxRowCounts);
 
     // ############################## Start used code ##############################
+    // ############################## Setup: instanciating and memory allocation ##############################
 
     struct ELLPACK result;
     result.noRows = left.noRows;
@@ -66,21 +67,25 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
     if (result.values == NULL || result.colPositions == NULL) {
         if (result.values != NULL) {
             free(result.values);
+            fprintf(stderr, "Error allocating memory");
         }
         if (result.colPositions != NULL) {
             free(result.colPositions);
+            fprintf(stderr, "Error allocating memory");
         }
-        abort();
+        exit(EXIT_FAILURE);
     }
 
     uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
     uint64_t biggerDimension = (left.noRows > right.noCols) ? left.noRows : right.noCols;
 
+    // ############################## calculation of actual values ##############################
+
     for (uint64_t i = 0; i < biggerDimension; i++) // Iterates over the rows of left
     {
         uint64_t leftRowIndex = i % left.noRows;
 
-        for (uint64_t l = 0; l < result.noCols; l++) { // Iterates over the columns in the result matrix
+        for (uint64_t l = 0; l < right.noCols; l++) { // Iterates over the columns in the right matrix
 
             float sum = 0.f; // accumulator for an entry in result
             for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
@@ -110,6 +115,8 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
             result.colPositions[resultPos] = 0;
         }
     }
+
+    // ############################## shrink result matrix by removing too long padding ##############################
 
     uint64_t realRightMaxNoNonZero = 0;
     uint64_t rowCounter;
