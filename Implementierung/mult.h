@@ -41,6 +41,4 @@ void write(struct ELLPACK matrix, void* result);
 /// @param nr test in `./sample-inputs/` to execute
 void test(int nr);
 
-int main();
-
 #endif
