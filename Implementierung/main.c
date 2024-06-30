@@ -8,17 +8,17 @@
 
 
 const char* usage_msg =
-    "Usage: %s [-a PATH] [-b PATH] [options]\n";
+    "Usage: %s [options]\n";
 
 const char* help_msg =
-    "\nRequired arguments:\n"
-    "    -a PATH\n"
-    "    -b PATH     paths to ellpack matrix factor\n"
+    //"\nRequired arguments:\n"
     "\n"
     "Optional arguments:\n"
-    "    -b PATH     path to result (default: ./result)\n"
+    "    -a PATH\n"
+    "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
+    "    -o PATH     path to result (if omitted: stdout)\n"
     "    -V N        impl number (non-negative integer, default: 0)\n"
-    "    -B N        time execution, N iterations (if N omitted: default: 1)\n"
+    "    -B N        time execution, N iterations (default: don't time, if N omitted: 1 iteration)\n"
     "    -h, --help  Show help and exit\n";
 
 void print_usage(const char* pname) {
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     int rounds = 1;
 
     static struct option long_opts[] = {
-        {"help",      no_argument,      NULL, 'h'},
+        {"help",    no_argument,    NULL,   'h'},
         {0, 0, 0, 0} // required (man 3 getopt_long)
     };
 
