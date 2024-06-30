@@ -95,8 +95,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    test(1);
-
     exit(EXIT_SUCCESS);
 }
 

@@ -240,38 +240,38 @@ void readFile(char* filePath, long fileSize, char* string) {
 
 /// @brief tests the function `matr_mult_ellpack`
 /// @param nr test in `./sample-inputs/` to execute
-void test(int nr) {
-    char* filePathLeft;
-    long fileSizeLeft;
-    char* filePathRight;
-    long fileSizeRight;
-
-    switch (nr)
-    {
-    case 1:
-        filePathLeft = "./Implementierung/sample-inputs/1.txt";
-        fileSizeLeft = 40;
-        filePathRight = "./Implementierung/sample-inputs/1.txt";
-        fileSizeRight = 40;
-        break;
-
-    default:
-        return;
-    }
-
-    char* leftString = abortIfNULL(malloc(fileSizeLeft));
-    readFile(filePathLeft, fileSizeLeft, leftString);
-    char* rightString = abortIfNULL(malloc(fileSizeRight));
-    readFile(filePathRight, fileSizeRight, rightString);
-
-    char* result = abortIfNULL(malloc(fileSizeLeft + fileSizeRight)); // TODO real values
-
-    matr_mult_ellpack((void*)leftString, (void*)rightString, (void*)result);
-
-    free(leftString);
-    free(rightString);
-    free(result);
-}
+//void test(int nr) {
+//    char* filePathLeft;
+//    long fileSizeLeft;
+//    char* filePathRight;
+//    long fileSizeRight;
+//
+//    switch (nr)
+//    {
+//    case 1:
+//        filePathLeft = "./Implementierung/sample-inputs/1.txt";
+//        fileSizeLeft = 40;
+//        filePathRight = "./Implementierung/sample-inputs/1.txt";
+//        fileSizeRight = 40;
+//        break;
+//
+//    default:
+//        return;
+//    }
+//
+//    char* leftString = abortIfNULL(malloc(fileSizeLeft));
+//    readFile(filePathLeft, fileSizeLeft, leftString);
+//    char* rightString = abortIfNULL(malloc(fileSizeRight));
+//    readFile(filePathRight, fileSizeRight, rightString);
+//
+//    char* result = abortIfNULL(malloc(fileSizeLeft + fileSizeRight)); // TODO real values
+//
+//    matr_mult_ellpack((void*)leftString, (void*)rightString, (void*)result);
+//
+//    free(leftString);
+//    free(rightString);
+//    free(result);
+//}
 
 /*
  * Step 1: read matrices

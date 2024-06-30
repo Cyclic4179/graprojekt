@@ -11,8 +11,8 @@ struct ELLPACK
     uint64_t noRows;
     uint64_t noCols;
     uint64_t maxNoNonZero;
+    float* values; // asterisk is stored as 0.0
     uint64_t* colPositions;
-    float* values;
 };
 
 /// @brief main function
@@ -39,6 +39,6 @@ void write(struct ELLPACK matrix, void* result);
 
 /// @brief tests the function `matr_mult_ellpack`
 /// @param nr test in `./sample-inputs/` to execute
-void test(int nr);
+//void test(int nr);
 
 #endif
