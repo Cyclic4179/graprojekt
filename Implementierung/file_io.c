@@ -10,7 +10,7 @@
 /// @param field_for_error part of error message
 /// @return read int
 uint64_t helper_read_int(const char* string, long* pos, char end, char* field_for_error, int line) {
-    int res = 0;
+    uint64_t res = 0;
     if (line != 1 && string[(*pos)] == '*')
     {
         if (string[(*pos) + 1] != end)
@@ -68,10 +68,10 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
                 else
                 {
                     int decimal_place_tmp = decimal_place;
-                    float ten = 0.0f;
-                    while (decimal_place_tmp != 0) {
+                    float ten = 10.0f;
+                    while (decimal_place_tmp > 1) {
                         ten *= 10;
-                        --decimal_place_tmp;
+                        decimal_place_tmp--;
                     }
                     res += (string[(*pos)] - '0') / ten;
                     decimal_place++;

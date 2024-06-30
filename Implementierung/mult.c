@@ -9,10 +9,10 @@
 /// @param result result of multiplication
 void matr_mult_ellpack(const void* a, const void* b, void* result) {
     *(struct ELLPACK*)result = multiply(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
-    const struct ELLPACK aE = *(struct ELLPACK*)result;
-    //const struct ELLPACK bE = *(struct ELLPACK*)b;
-    //struct ELLPACK res = *(struct ELLPACK*)result;
-    //res = multiply(aE, bE);
+    const struct ELLPACK aE = *(struct ELLPACK*)a;
+    const struct ELLPACK bE = *(struct ELLPACK*)b;
+    struct ELLPACK res = *(struct ELLPACK*)result;
+    res = multiply(aE, bE);
 
     // ! DEBUG
     printf("%lu\n", aE.noRows);
@@ -24,11 +24,11 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     printf("%f ", aE.values[3]);
     printf("%f ", aE.values[4]);
     printf("%f\n", aE.values[5]);
-    printf("%lu", aE.colPositions[0]);
-    printf("%lu", aE.colPositions[1]);
-    printf("%lu", aE.colPositions[2]);
-    printf("%lu", aE.colPositions[3]);
-    printf("%lu", aE.colPositions[4]);
+    printf("%lu ", aE.colPositions[0]);
+    printf("%lu ", aE.colPositions[1]);
+    printf("%lu ", aE.colPositions[2]);
+    printf("%lu ", aE.colPositions[3]);
+    printf("%lu ", aE.colPositions[4]);
     printf("%lu\n", aE.colPositions[5]);
 }
 
