@@ -56,6 +56,11 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
         (*pos)++;
     }
     else {
+        float negative = 1.0f;
+        if (string[(*pos)] == '-') {
+            negative = -1.0f;
+            (*pos)++;
+        }
         int decimal_place = 0;
         while (string[(*pos)] != end)
         {
@@ -93,6 +98,7 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
                 exit(EXIT_FAILURE);
             }
         }
+        res = res * negative;
     }
     return res;
 }
