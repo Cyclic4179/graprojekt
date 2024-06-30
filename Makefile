@@ -3,7 +3,7 @@ CC := gcc
 # -Wall:			Print warnings
 # -Wextra:			Enable additional warnings not covered by "-Wall"
 # -g				Generates debug information to be used by GDB debugger
-CFLAGS := -Wall -Wextra -g -O2
+CFLAGS := -Wall -Wextra -g -O
 
 TARGET_EXEC := main
 
@@ -64,4 +64,3 @@ clean:
 
 
 # vim set noexpandtab
-
