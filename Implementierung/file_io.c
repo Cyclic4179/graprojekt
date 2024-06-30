@@ -144,7 +144,6 @@ struct ELLPACK read_validate(FILE* file) {
 /// @param matrix matrix to convert
 /// @param result pointer to file
 void write(struct ELLPACK matrix, FILE* file) {
-    //FILE* file = abortIfNULL(fopen(result, "w"));
     uint64_t index, i, j;
 
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
@@ -176,8 +175,6 @@ void write(struct ELLPACK matrix, FILE* file) {
     }
     fseek(file, -1, SEEK_CUR);
     fputs("\n", file);
-
-    fclose(file);
 }
 
 // /// @brief helper: read a file to a pointer
