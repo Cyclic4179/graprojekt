@@ -55,7 +55,6 @@ test: build
 			echo ; \
 			echo but got:; \
 			echo $$got; \
-			#exit 1; \
             false; \
 		}; \
 	done && echo SUCCESS || exit 0
