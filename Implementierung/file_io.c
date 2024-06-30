@@ -7,7 +7,7 @@
 /// @param end character after int
 /// @param field_for_error part of error message
 /// @return read int
-int helper_read_int(const char* string, long* pos, char end, char* field_for_error, int line) {
+uint64_t helper_read_int(const char* string, long* pos, char end, char* field_for_error, int line) {
     int res = 0;
     if (line != 1 && string[(*pos)] == '*')
     {
@@ -24,6 +24,58 @@ int helper_read_int(const char* string, long* pos, char end, char* field_for_err
             if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
             {
                 res = (res * 10) + (string[(*pos)] - '0');
+                (*pos)++;
+            }
+            else
+            {
+                fprintf(stderr, "<%s> contains illegal character: %c\n", field_for_error, string[(*pos)]);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    return res;
+}
+
+/// @brief helper: read float from string
+/// @param string string
+/// @param pos current position in string
+/// @param end character after float
+/// @param field_for_error part of error message
+/// @return read float
+float helper_read_float(const char* string, long* pos, char end, char* field_for_error) {
+    float res = 0.0f;
+    if (string[(*pos)] == '*')
+    {
+        if (string[(*pos) + 1] != end)
+        {
+            fprintf(stderr, "<%s> contains illegal character after *: %c\n", field_for_error, string[(*pos + 1)]);
+            exit(EXIT_FAILURE);
+        }
+        (*pos)++;
+    }
+    else {
+        int decimal_place = 0;
+        while (string[(*pos)] != end)
+        {
+            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
+            {
+                if (0 == decimal_place)
+                {
+                    res = (res * 10) + (string[(*pos)] - '0');
+                }
+                else
+                {
+                    res += (string[(*pos)] - '0') / pow(10, decimal_place);
+                }
+                (*pos)++;
+            }
+            else if (string[(*pos)] == '.') {
+                if (0 < decimal_place)
+                {
+                    fprintf(stderr, "<%s> contains illegal second decimal point\n", field_for_error);
+                    exit(EXIT_FAILURE);
+                }
+                decimal_place = 1;
                 (*pos)++;
             }
             else
@@ -56,12 +108,11 @@ struct ELLPACK read_validate(const void* file) {
 
     long itemsCount = result.noRows * result.maxNoNonZero;
 
-    // ! NOT FOR FLOATS
     result.values = (float*)abortIfNULL(malloc(itemsCount * sizeof(float)));
     for (long i = 0; i < itemsCount; i++)
     {
         char end = i == itemsCount - 1 ? '\n' : ',';
-        result.values[i] = helper_read_int(string, &pos, end, "values", 2);
+        result.values[i] = helper_read_float(string, &pos, end, "values");
         pos++;
     }
 
