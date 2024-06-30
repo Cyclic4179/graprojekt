@@ -1,5 +1,6 @@
 #include "file_io.h"
 #include "util.h"
+#include "ellpack.h"
 
 /// @brief helper: read int from string
 /// @param string string

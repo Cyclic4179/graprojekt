@@ -1,5 +1,6 @@
 #include "mult.h"
 #include "util.h"
+#include "ellpack.h"
 
 
 /// @brief main function

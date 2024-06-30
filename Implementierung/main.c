@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "mult.h"
+#include "ellpack.h"
 
 
 const char* usage_msg =
