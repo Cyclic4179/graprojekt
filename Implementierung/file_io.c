@@ -107,8 +107,9 @@ struct ELLPACK read_validate(FILE* file) {
     struct ELLPACK result = {};
     long pos = 0;
 
-    fread(string, 1, sizeof(string), file);
-    printf("%s\n", string);
+    int last = fread(string, sizeof(*string), sizeof(string), file);
+    string[last] = 0;
+    //printf("%s", string);
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;

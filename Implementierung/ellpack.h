@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 struct ELLPACK {
     uint64_t noRows;
@@ -8,3 +9,7 @@ struct ELLPACK {
     uint64_t* colPositions;
 };
 
+inline void free_ellpack(struct ELLPACK e) {
+    free(e.values);
+    free(e.colPositions);
+}
