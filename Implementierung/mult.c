@@ -224,7 +224,40 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
 /// @param matrix matrix to convert
 /// @param result pointer to file
 void write(struct ELLPACK matrix, void* result) {
-    // TODO
+    FILE* file = abortIfNULL(fopen(result, "w"));
+    uint64_t index, i, j;
+
+    fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
+
+    index = 0;
+    for (i = 0; i < matrix.noRows; i++) {
+        for (j = 0; j < matrix.maxNoNonZero; j++) {
+            if (matrix.values[index] == 0.) {
+                fputs("*,", file);
+                index++;
+                break;
+            }
+            fprintf(file, "%g,", matrix.values[index++]);
+        }
+    }
+    fseek(file, -1, SEEK_CUR);
+    fputs("\n", file);
+
+    index = 0;
+    for (i = 0; i < matrix.noRows; i++) {
+        for (j = 0; j < matrix.maxNoNonZero; j++) {
+            if (matrix.values[index] == 0.) {
+                fputs("*,", file);
+                index++;
+                break;
+            }
+            fprintf(file, "%lu,", matrix.colPositions[index++]);
+        }
+    }
+    fseek(file, -1, SEEK_CUR);
+    fputs("\n", file);
+
+    fclose(file);
 }
 
 /// @brief helper: read a file to a pointer
