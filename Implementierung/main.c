@@ -106,43 +106,117 @@ struct ELLPACK read_validate(const void* file) {
 /// @result multiplied matrix
 struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
 {
+    // Array storing the amounts of non-zero entries per column in right    // TODO unused so far
+    uint64_t* maxRowCounts = (uint64_t*) malloc(right.noRows + sizeof(uint64_t));
+    if (maxRowCounts == NULL) {
+        fprintf(stderr, "Error allocating memory");
+        abort();
+    }
+    for (uint64_t i = 0; i < right.noRows; i++){
+        maxRowCounts[i] = 0;
+    }
+    for (uint64_t i = 0; i < right.noRows * right.maxNoNonZero; i++) {
+        if (right.values[i] != 0.f) {
+            maxRowCounts[right.colPositions[i]]++;
+        }
+    }
+    uint64_t maxRow = 0;                     // maximum number of non-zero entries of columns of right // TODO unused so far
+    for (uint64_t i = 0; i < right.noRows; i++) {
+        if (maxRowCounts[i] > maxRow) {
+            maxRow = maxRowCounts[i];
+        }
+    }
+    free(maxRowCounts);
+
+    // ############################## Start used code ##############################
+
     struct ELLPACK result;
-    result.noRows = left.noRows;             // number of Rows in result matrix
-    result.noCols = right.noCols;            // number of Columns in result matrix
-    result.maxNoNonZero = left.maxNoNonZero; // maximum number of non-zero entries in result TODO not correct yet
+    result.noRows = left.noRows;
+    result.noCols = right.noCols;
+
+    uint64_t maxNoNonZeroLimit = (right.noCols > left.maxNoNonZero * right.maxNoNonZero) ? left.maxNoNonZero * right.maxNoNonZero : right.noCols;
+    result.maxNoNonZero = maxNoNonZeroLimit;      // TODO proven that this is correct yet
+
+    result.values = (float*) malloc(result.noRows * result.maxNoNonZero * sizeof(float));
+    result.colPositions = (uint64_t*) malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
+    if (result.values == NULL || result.colPositions == NULL) {
+        if (result.values != NULL) {
+            free(result.values);
+        }
+        if (result.colPositions != NULL) {
+            free(result.colPositions);
+        }
+        abort();
+    }
+
     uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
-
     uint64_t biggerDimension = (left.noRows > right.noCols) ? left.noRows : right.noCols;
-    for (uint64_t i = 0; i < biggerDimension; i++)
-    {                    // Iterates over the rows of left
-        float sum = 0.f; // accumulator for product of
-        for (int j = 0; j < left.maxNoNonZero; j++)
-        { // Iterates over a row of left
-            uint64_t leftIndex = i % left.noRows;
-            // leftColRightRow is the column index of the left and row index of the right matrix
-            uint64_t leftColRightRow = left.colPositions[leftIndex * left.maxNoNonZero + j];
 
-            // add here: if padded (= invalid value (float of 0.0)) then break
+    for (uint64_t i = 0; i < biggerDimension; i++) // Iterates over the rows of left
+    {
+        uint64_t leftRowIndex = i % left.noRows;
 
-            // Iterates over the column of right to check if value of right is not 0 / row of right has entry for that position
-            for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero; k++)
-            {
-                if (right.colPositions[k] == i % right.noCols)
-                { // TODO: i % right.noCols correct?
-                    sum += left.values[leftColRightRow * left.maxNoNonZero + j] * right.values[k];
+        for(uint64_t l = 0; l < result.noCols; l++) { // Iterates over the columns in the result matrix
+
+            float sum = 0.f; // accumulator for an entry in result
+            for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
+
+                // leftColRightRow is the column index of the left and row index of the right matrix
+                uint64_t leftColRightRow = left.colPositions[leftRowIndex * left.maxNoNonZero + j];
+
+                // add here: if padded (= invalid value (float of 0.0)) then break
+
+                // Iterates over the column of right to check if value of right is not 0 / row of right has entry for that position
+                for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero; k++) {
+                    if (right.colPositions[k] == l) {
+                        sum += left.values[leftRowIndex * left.maxNoNonZero + j] * right.values[k];
+                    }
                 }
             }
             // set value of result to calculated product
-            result.colPositions[resultPos] = leftColRightRow;
-            result.values[resultPos++] = sum;
+            if (sum != 0.0) {
+                result.colPositions[resultPos] = l;
+                result.values[resultPos++] = sum;
+            }
         }
         // add padding
         for (; resultPos < (i + 1) * result.maxNoNonZero; resultPos++)
         {
             result.values[resultPos] = 0.f;
-            result.colPositions[resultPos] = result.noCols - 1;
+            result.colPositions[resultPos] = 0;
         }
     }
+
+    uint64_t realRightMaxNoNonZero = 0;
+    uint64_t rowCounter;
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        rowCounter = 0;
+        for (uint64_t j = 0; j < right.maxNoNonZero; ++j) {
+            if (result.values[result.maxNoNonZero * i + j] != 0.f) {
+                rowCounter++;
+            }
+        }
+        if (rowCounter > realRightMaxNoNonZero) {
+            realRightMaxNoNonZero = rowCounter;
+        }
+    }
+    uint64_t realResultPointer = 0;
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        for (uint64_t j = 0; j < result.maxNoNonZero; j++) {
+            if (result.values[i * realRightMaxNoNonZero + j] != 0.f) {
+                result.values[realResultPointer] = result.values[i * realRightMaxNoNonZero + j];
+                result.colPositions[realResultPointer] = result.colPositions[i * realRightMaxNoNonZero + j];
+                realResultPointer++;
+            }
+        }
+        for (; realResultPointer < (i + 1) * realRightMaxNoNonZero; realResultPointer++)
+        {
+            result.values[realResultPointer] = 0.f;
+            result.colPositions[realResultPointer] = 0;
+        }
+    }
+    right.maxNoNonZero = realRightMaxNoNonZero;
+
     return result;
 }
 
