@@ -15,9 +15,6 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     res = multiply(aE, bE);
 
     // ! DEBUG
-    //printf("%lu\n", aE.noRows);
-    //printf("%lu\n", aE.noCols);
-    //printf("%lu\n", aE.maxNoNonZero);
     printf("%lu\n", aE.noRows);
     printf("%lu\n", aE.noCols);
     printf("%lu\n", aE.maxNoNonZero);
