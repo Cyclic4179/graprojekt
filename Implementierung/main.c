@@ -154,13 +154,18 @@ int main(int argc, char** argv) {
         }
     }
 
-    abortIfNULL_msg(a, "(fixmelater) for now, '-a' must be set");
-    abortIfNULL_msg(b, "(fixmelater) for now, '-b' must be set");
-    abortIfNULL_msg(out, "(fixmelater) for now, '-out' must be set");
+    //abortIfNULL_msg(a, "(fixmelater) for now, '-a' must be set");
+    //abortIfNULL_msg(b, "(fixmelater) for now, '-b' must be set");
+    //abortIfNULL_msg(out, "(fixmelater) for now, '-out' must be set");
 
     // TODO things
     FILE* file_a = abortIfNULL(fopen(a, "r"));
     FILE* file_b = abortIfNULL(fopen(b, "r"));
+    /*FILE* file_a = (fopen(a, "r")); // alternative from Simon for debugging
+    FILE* file_b = (fopen(b, "r"));
+    if (file_a == NULL || file_b == NULL) {
+        abort();
+    }*/
     const struct ELLPACK a_lpk = read_validate(file_a);
     const struct ELLPACK b_lpk = read_validate(file_b);
     fclose(file_a);
@@ -175,6 +180,10 @@ int main(int argc, char** argv) {
     matr_mult_ellpack(&a_lpk, &b_lpk, &res_lpk);
 
     FILE* file_out = abortIfNULL(fopen(out, "w"));
+    /*FILE* file_out = fopen(out, "w"); // alternative from Simon for debugging
+    if (file_out == NULL) {
+        abort();
+    }*/
     write(res_lpk, file_out);
     fclose(file_out);
 
@@ -183,4 +192,3 @@ int main(int argc, char** argv) {
     free_ellpack(res_lpk);
     exit(EXIT_SUCCESS);
 }
-

@@ -10,15 +10,38 @@
 void matr_mult_ellpack(const void* a, const void* b, void* result) {
     *(struct ELLPACK*)result = multiply(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     const struct ELLPACK aE = *(struct ELLPACK*)result;
-    //const struct ELLPACK bE = *(struct ELLPACK*)b;
-    //struct ELLPACK res = *(struct ELLPACK*)result;
-    //res = multiply(aE, bE);
+    const struct ELLPACK bE = *(struct ELLPACK*)b;
+    struct ELLPACK res = *(struct ELLPACK*)result;
+    res = multiply(aE, bE);
 
     // ! DEBUG
+    //printf("%lu\n", aE.noRows);
+    //printf("%lu\n", aE.noCols);
+    //printf("%lu\n", aE.maxNoNonZero);
     printf("%lu\n", aE.noRows);
     printf("%lu\n", aE.noCols);
     printf("%lu\n", aE.maxNoNonZero);
-    printf("%f ", aE.values[0]);
+    for(uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++){
+        printf("%f, ", aE.values[i]);
+    }
+    printf("\n");
+    for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
+        printf("%lu, ", aE.colPositions[i]);
+    }
+    printf("\n");
+
+    printf("%lu\n", res.noRows);
+    printf("%lu\n", res.noCols);
+    printf("%lu\n", res.maxNoNonZero);
+    for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
+        printf("%f, ", res.values[i]);
+    }
+    printf("\n");
+    for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
+        printf("%lu, ", res.colPositions[i]);
+    }
+    printf("\n");
+    /*printf("%f ", aE.values[0]);
     printf("%f ", aE.values[1]);
     printf("%f ", aE.values[2]);
     printf("%f ", aE.values[3]);
@@ -29,7 +52,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     printf("%lu", aE.colPositions[2]);
     printf("%lu", aE.colPositions[3]);
     printf("%lu", aE.colPositions[4]);
-    printf("%lu\n", aE.colPositions[5]);
+    printf("%lu\n", aE.colPositions[5]);*/
 }
 
 /// @brief multiplies the matrices
@@ -126,35 +149,35 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
 
     // ############################## shrink result matrix by removing too long padding ##############################
 
-    uint64_t realRightMaxNoNonZero = 0;
+    uint64_t realResultMaxNoNonZero = 0;
     uint64_t rowCounter;
     for (uint64_t i = 0; i < result.noRows; i++) {
         rowCounter = 0;
-        for (uint64_t j = 0; j < right.maxNoNonZero; ++j) {
+        for (uint64_t j = 0; j < result.maxNoNonZero; ++j) {
             if (result.values[result.maxNoNonZero * i + j] != 0.f) {
                 rowCounter++;
             }
         }
-        if (rowCounter > realRightMaxNoNonZero) {
-            realRightMaxNoNonZero = rowCounter;
+        if (rowCounter > realResultMaxNoNonZero) {
+            realResultMaxNoNonZero = rowCounter;
         }
     }
     uint64_t realResultPointer = 0;
     for (uint64_t i = 0; i < result.noRows; i++) {
         for (uint64_t j = 0; j < result.maxNoNonZero; j++) {
-            if (result.values[i * realRightMaxNoNonZero + j] != 0.f) {
-                result.values[realResultPointer] = result.values[i * realRightMaxNoNonZero + j];
-                result.colPositions[realResultPointer] = result.colPositions[i * realRightMaxNoNonZero + j];
+            if (result.values[i * result.maxNoNonZero + j] != 0.f) {
+                result.values[realResultPointer] = result.values[i * result.maxNoNonZero + j];
+                result.colPositions[realResultPointer] = result.colPositions[i * result.maxNoNonZero + j];
                 realResultPointer++;
             }
         }
-        for (; realResultPointer < (i + 1) * realRightMaxNoNonZero; realResultPointer++)
+        for (; realResultPointer < (i + 1) * realResultMaxNoNonZero; realResultPointer++)
         {
             result.values[realResultPointer] = 0.f;
             result.colPositions[realResultPointer] = 0;
         }
     }
-    right.maxNoNonZero = realRightMaxNoNonZero;
+    result.maxNoNonZero = realResultMaxNoNonZero;
 
     return result;
 }
