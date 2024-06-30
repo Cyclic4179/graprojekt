@@ -39,7 +39,7 @@ test: build
 	for i in $(shell ls $(TESTS_DIR)); do \
 		got=$$($(BUILD_DIR)/$(TARGET_EXEC) -a $(TESTS_DIR)/$$i/a -b $(TESTS_DIR)/$$i/b); \
 		expected=$$(cat $(TESTS_DIR)/$$i/res); \
-		[[ ! "$$got" = "$$expected" ]] && { \
+		( ! "$$got" = "$$expected" ) && { \
 			echo ; \
 			echo ---------------------; \
 			echo FAILED: testcase $$i; \
