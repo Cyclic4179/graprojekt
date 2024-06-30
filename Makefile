@@ -29,10 +29,10 @@ $(BUILD_DIR)/%.c.o: %.c
 build: $(BUILD_DIR)/$(TARGET_EXEC)
 
 run: build
-	$(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o /dev/null
+	$(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o ./result
 
 debug: build
-	gdb $(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o /dev/null
+	gdb --args $(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o /dev/null
 
 
 test: build
