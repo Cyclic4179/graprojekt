@@ -23,8 +23,13 @@ const char* help_msg =
     "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
     "    -o PATH     path to result (if omitted: stdout)\n"
     "    -V N        impl number (non-negative integer, default: 0)\n"
-    "    -B N        time execution, N iterations (default: don't time, if N omitted: 1 iteration)\n"
-    "    -h, --help  Show help and exit\n";
+    "    -B N        time execution, N iterations (default: don't time, disables printing result to stdout, if N omitted: 1 iteration)\n"
+    "    -h, --help  Show help and exit\n"
+    "\n"
+    "Examples:\n"
+    "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
+    "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
+    "%s -V 5 -B <sample-inputs/1.txt <sample-inputs/2.txt\n";
 
 void print_usage(const char* pname) {
     fprintf(stderr, usage_msg, pname, pname, pname);
@@ -32,7 +37,7 @@ void print_usage(const char* pname) {
 
 void print_help(const char* pname) {
     print_usage(pname);
-    fprintf(stderr, "\n%s", help_msg);
+    fprintf(stderr, help_msg, pname, pname, pname);
 }
 
 uint64_t parse_int(char opt, const char* pname) {
@@ -54,57 +59,6 @@ uint64_t parse_int(char opt, const char* pname) {
 }
 
 int main(int argc, char** argv) {
-    //char* ptr = "4,4,2\n5,*,6,*,0.5,7,3,*\n0,*,1,*,0,1,3,*\n";
-    //int len = strlen(ptr);
-    //float values[len/2];
-    //uint64_t indices[len/2];
-    //struct ELLPACK ppp;
-    //ppp.values = values;
-    //ppp.colPositions = indices;
-
-    //ppp.noRows = strtoll(ptr, &ptr, 10);
-    //ptr++;
-    ////abortIfNEQ(*ptr, ",");
-    //ppp.noCols = strtoll(ptr, &ptr, 10);
-    //ptr++;
-    //ppp.maxNoNonZero = strtoll(ptr, &ptr, 10);
-    //ptr++;
-
-    //uint64_t index = 0;
-    //while (*ptr != '\n') {
-    //    switch (*ptr) {
-    //        case 0:
-    //            exit(EXIT_FAILURE);
-    //        case '*':
-    //            if (*(++ptr) != ',') {
-    //                printf("invalid char: %c\n", *ptr);
-    //                exit(EXIT_FAILURE);
-    //            }
-    //            ptr++;
-    //            break;
-    //    }
-    //    if (*ptr != '.' && *ptr < '0' || *ptr > '9') {
-    //        printf("invalid char: %c\n", *ptr);
-    //        exit(EXIT_FAILURE);
-    //    }
-    //    //if (*ptr == '\0') {
-    //    //}
-    //    values[index++] = strtof(ptr, &ptr);
-    //    ptr++;
-    //}
-
-    //index = 0;
-    //while (*ptr != '\n') {
-    //    if (*ptr == '\0') {
-    //        exit(EXIT_FAILURE);
-    //    }
-    //    indices[index++] = strtol(ptr, &ptr, 10);
-    //    ptr++;
-    //}
-
-    //write(ppp, stdout);
-    //exit(0);
-
     const char* pname = argv[0];
 
     if (argc == 1) {
@@ -158,9 +112,36 @@ int main(int argc, char** argv) {
     //abortIfNULL_msg(b, "(fixmelater) for now, '-b' must be set");
     //abortIfNULL_msg(out, "(fixmelater) for now, '-out' must be set");
 
-    // TODO things
-    FILE* file_a = abortIfNULL(fopen(a, "r"));
-    FILE* file_b = abortIfNULL(fopen(b, "r"));
+    // "    -V N        impl number (non-negative integer, default: 0)\n"
+    // "    -B N        time execution, N iterations (default: don't time, if N omitted: 1 iteration)\n"
+
+    void (*matr_mult_ellpack_ptr)(const void*, const void*, void*);
+
+    switch (impl_version) {
+        case 0:
+            matr_mult_ellpack_ptr = matr_mult_ellpack;
+            break;
+        default:
+            fprintf(stderr, "not a valid version: %d\n", impl_version);
+            print_usage(pname);
+            exit(EXIT_FAILURE);
+    }
+
+    FILE* file_a;
+    FILE* file_b;
+
+    if (a != NULL) {
+        file_a = abortIfNULL(fopen(a, "r"));
+    } else {
+        file_a = stdin;
+    }
+
+    if (b != NULL) {
+        file_b = abortIfNULL(fopen(b, "r"));
+    } else {
+        file_b = stdin;
+    }
+
     /*FILE* file_a = (fopen(a, "r")); // alternative from Simon for debugging
     FILE* file_b = (fopen(b, "r"));
     if (file_a == NULL || file_b == NULL) {
@@ -170,16 +151,16 @@ int main(int argc, char** argv) {
     const struct ELLPACK b_lpk = read_validate(file_b);
     fclose(file_a);
     fclose(file_b);
-    //printf("%f\n", a_lpk.values[4]);
-    //puts("start asdf");
-    //write(a_lpk, stdout);
-    //puts("fini asdf");
-    //write(b_lpk, stdout);
 
     struct ELLPACK res_lpk;
-    matr_mult_ellpack(&a_lpk, &b_lpk, &res_lpk);
+    matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
 
-    FILE* file_out = abortIfNULL(fopen(out, "w"));
+    FILE* file_out;
+    if (out != NULL) {
+        file_out = abortIfNULL(fopen(out, "w"));
+    } else {
+        file_out = stdout;
+    }
     /*FILE* file_out = fopen(out, "w"); // alternative from Simon for debugging
     if (file_out == NULL) {
         abort();

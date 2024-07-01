@@ -29,6 +29,7 @@ inline void* __abort_null(void* value, char* desc, char* file, int line, char* m
 //#define abortIfNEQ(i,j) __abort_null(i-j, "#i - \\#j")
 //abortIfNEQ(i, j)
 
+// comment this out to disable debug output
 #define DEBUG
 
 #ifdef DEBUG

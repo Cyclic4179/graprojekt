@@ -3,6 +3,7 @@
 #include "ellpack.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 /// @brief helper: read int from string
 /// @param string string
@@ -149,6 +150,8 @@ struct ELLPACK read_validate(FILE* file) {
         result.indices[i] = helper_read_int(string, &pos, end, "indices", 3);
         pos++;
     }
+
+    free(string);
 
     return result;
 }
