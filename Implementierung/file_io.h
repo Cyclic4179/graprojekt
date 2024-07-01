@@ -9,12 +9,12 @@
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
 /// @result matrix in ELLPACK format
-struct ELLPACK read_validate(FILE* file);
+struct ELLPACK elpk_read_validate(FILE* file);
 
 /// @brief writes the matrix to the file
 /// @param matrix matrix to convert
 /// @param result pointer to file
-void write(struct ELLPACK matrix, FILE* file);
+void elpk_write(struct ELLPACK matrix, FILE* file);
 
 /// @brief tests the function `matr_mult_ellpack`
 /// @param nr test in `./sample-inputs/` to execute

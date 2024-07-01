@@ -108,18 +108,13 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
 /// @result matrix in ELLPACK format
-struct ELLPACK read_validate(FILE* file) {
-    // TODO change file to FILE*
-    // TODO better version later
+struct ELLPACK elpk_read_validate(FILE* file) {
     char* string = NULL;
     size_t len = 0;
     struct ELLPACK result = {};
     long pos = 0;
 
-    //int last = fread(string, sizeof(*string), sizeof(string), file);
     abortIfNULL((void*) (getline(&string, &len, file) + 1));
-    //string[last] = 0;
-    //printf("%s", string);
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;
@@ -159,7 +154,7 @@ struct ELLPACK read_validate(FILE* file) {
 /// @brief writes the matrix to the file
 /// @param matrix matrix to convert
 /// @param result pointer to file
-void write(struct ELLPACK matrix, FILE* file) {
+void elpk_write(struct ELLPACK matrix, FILE* file) {
     uint64_t index, i, j;
 
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
