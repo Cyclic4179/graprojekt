@@ -9,48 +9,50 @@
 /// @param result result of multiplication
 void matr_mult_ellpack(const void* a, const void* b, void* result) {
     *(struct ELLPACK*)result = multiply(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
-    const struct ELLPACK aE = *(struct ELLPACK*)a; // ! DEBUG
-    const struct ELLPACK bE = *(struct ELLPACK*)b; // ! DEBUG
-    // struct ELLPACK res = *(struct ELLPACK*)result;
-    // res = multiply(aE, bE);
 
     // ! DEBUG
+    const struct ELLPACK aE = *(struct ELLPACK*)a;
+    const struct ELLPACK bE = *(struct ELLPACK*)b;
+    struct ELLPACK res = *(struct ELLPACK*)result;
+
+    printf("== a ==\n");
     printf("%lu\n", aE.noRows);
     printf("%lu\n", aE.noCols);
     printf("%lu\n", aE.maxNoNonZero);
-    printf("%f ", aE.values[0]);
-    printf("%f ", aE.values[1]);
-    printf("%f ", aE.values[2]);
-    printf("%f ", aE.values[3]);
-    printf("%f ", aE.values[4]);
-    printf("%f\n", aE.values[5]);
-    printf("%lu ", aE.colPositions[0]);
-    printf("%lu ", aE.colPositions[1]);
-    printf("%lu ", aE.colPositions[2]);
-    printf("%lu ", aE.colPositions[3]);
-    printf("%lu ", aE.colPositions[4]);
-    printf("%lu\n", aE.colPositions[5]);
+    for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
+        printf("%f, ", aE.values[i]);
+    }
+    printf("\n");
+    for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
+        printf("%lu, ", aE.colPositions[i]);
+    }
+    printf("\n\n");
 
-    // for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-    //     printf("%f, ", aE.values[i]);
-    // }
-    // printf("\n");
-    // for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-    //     printf("%lu, ", aE.colPositions[i]);
-    // }
-    // printf("\n");
+    printf("== b ==\n");
+    printf("%lu\n", bE.noRows);
+    printf("%lu\n", bE.noCols);
+    printf("%lu\n", bE.maxNoNonZero);
+    for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
+        printf("%f, ", bE.values[i]);
+    }
+    printf("\n");
+    for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
+        printf("%lu, ", bE.colPositions[i]);
+    }
+    printf("\n\n");
 
-    // printf("%lu\n", res.noRows);
-    // printf("%lu\n", res.noCols);
-    // printf("%lu\n", res.maxNoNonZero);
-    // for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-    //     printf("%f, ", res.values[i]);
-    // }
-    // printf("\n");
-    // for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-    //     printf("%lu, ", res.colPositions[i]);
-    // }
-    // printf("\n");
+    printf("== o ==\n");
+    printf("%lu\n", res.noRows);
+    printf("%lu\n", res.noCols);
+    printf("%lu\n", res.maxNoNonZero);
+    for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
+        printf("%f, ", res.values[i]);
+    }
+    printf("\n");
+    for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
+        printf("%lu, ", res.colPositions[i]);
+    }
+    printf("\n");
 }
 
 /// @brief multiplies the matrices
