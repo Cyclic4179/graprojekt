@@ -29,4 +29,12 @@ inline void* __abort_null(void* value, char* desc, char* file, int line, char* m
 //#define abortIfNEQ(i,j) __abort_null(i-j, "#i - \\#j")
 //abortIfNEQ(i, j)
 
+#define DEBUG
+
+#ifdef DEBUG
+#define pdebug(...) fputs("DEBUG:    ", stderr); fprintf(stderr, __VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
+
 #endif

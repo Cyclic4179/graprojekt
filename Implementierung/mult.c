@@ -15,44 +15,44 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     const struct ELLPACK bE = *(struct ELLPACK*)b;
     struct ELLPACK res = *(struct ELLPACK*)result;
 
-    printf("== a ==\n");
-    printf("%lu\n", aE.noRows);
-    printf("%lu\n", aE.noCols);
-    printf("%lu\n", aE.maxNoNonZero);
+    pdebug("== a ==\n");
+    pdebug("%lu\n", aE.noRows);
+    pdebug("%lu\n", aE.noCols);
+    pdebug("%lu\n", aE.maxNoNonZero);
     for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-        printf("%f, ", aE.values[i]);
+        pdebug("%f, ", aE.values[i]);
     }
-    printf("\n");
+    pdebug("\n");
     for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-        printf("%lu, ", aE.colPositions[i]);
+        pdebug("%lu, ", aE.colPositions[i]);
     }
-    printf("\n\n");
+    pdebug("\n\n");
 
-    printf("== b ==\n");
-    printf("%lu\n", bE.noRows);
-    printf("%lu\n", bE.noCols);
-    printf("%lu\n", bE.maxNoNonZero);
+    pdebug("== b ==\n");
+    pdebug("%lu\n", bE.noRows);
+    pdebug("%lu\n", bE.noCols);
+    pdebug("%lu\n", bE.maxNoNonZero);
     for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
-        printf("%f, ", bE.values[i]);
+        pdebug("%f, ", bE.values[i]);
     }
-    printf("\n");
+    pdebug("\n");
     for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
-        printf("%lu, ", bE.colPositions[i]);
+        pdebug("%lu, ", bE.colPositions[i]);
     }
-    printf("\n\n");
+    pdebug("\n\n");
 
-    printf("== o ==\n");
-    printf("%lu\n", res.noRows);
-    printf("%lu\n", res.noCols);
-    printf("%lu\n", res.maxNoNonZero);
+    pdebug("== o ==\n");
+    pdebug("%lu\n", res.noRows);
+    pdebug("%lu\n", res.noCols);
+    pdebug("%lu\n", res.maxNoNonZero);
     for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-        printf("%f, ", res.values[i]);
+        pdebug("%f, ", res.values[i]);
     }
-    printf("\n");
+    pdebug("\n");
     for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-        printf("%lu, ", res.colPositions[i]);
+        pdebug("%lu, ", res.colPositions[i]);
     }
-    printf("\n");
+    pdebug("\n");
 }
 
 /// @brief multiplies the matrices
