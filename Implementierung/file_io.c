@@ -2,6 +2,7 @@
 #include "util.h"
 #include "ellpack.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 /// @brief helper: read int from string
 /// @param string string
@@ -156,40 +157,56 @@ void write(struct ELLPACK matrix, FILE* file) {
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
 
     index = 0;
+    bool first = true;
+
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
             if (matrix.values[index] == 0.) {
-                fputs("*,", file);
+                if (first) {
+                    fputs("*", file);
+                    first = false;
+                } else {
+                    fputs(",*", file);
+                }
                 index++;
                 break;
             }
-            fprintf(file, "%g,", matrix.values[index++]);
+
+            if (first) {
+                fprintf(file, "%g", matrix.values[index++]);
+                first = false;
+            } else {
+                fprintf(file, ",%g", matrix.values[index++]);
+            }
         }
-    }
-    if (file == stdout) {
-        fputs("\33[D \n", file);
-    } else {
-        fseek(file, -1, SEEK_CUR);
-        fputs("\n", file);
     }
 
     index = 0;
+    first = true;
+
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
             if (matrix.values[index] == 0.) {
-                fputs("*,", file);
+                if (first) {
+                    fputs("\n*", file);
+                    first = false;
+                } else {
+                    fputs(",*", file);
+                }
                 index++;
                 break;
             }
-            fprintf(file, "%lu,", matrix.indices[index++]);
+
+            if (first) {
+                fprintf(file, "\n%lu", matrix.indices[index++]);
+                first = false;
+            } else {
+                fprintf(file, ",%lu", matrix.indices[index++]);
+            }
         }
     }
-    if (file == stdout) {
-        fputs("\33[D \n", file);
-    } else {
-        fseek(file, -1, SEEK_CUR);
-        fputs("\n", file);
-    }
+
+    fputs("\n", file);
 }
 
 // /// @brief helper: read a file to a pointer
