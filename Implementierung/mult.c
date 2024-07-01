@@ -19,40 +19,46 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     pdebug("%lu\n", aE.noRows);
     pdebug("%lu\n", aE.noCols);
     pdebug("%lu\n", aE.maxNoNonZero);
+    pdebug("");
     for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-        pdebug("%f, ", aE.values[i]);
+        pdebug_("%f, ", aE.values[i]);
     }
-    pdebug("\n");
+    pdebug_("\n");
+    pdebug("");
     for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-        pdebug("%lu, ", aE.indices[i]);
+        pdebug_("%lu, ", aE.indices[i]);
     }
-    pdebug("\n\n");
+    pdebug_("\n\n");
 
     pdebug("== b ==\n");
     pdebug("%lu\n", bE.noRows);
     pdebug("%lu\n", bE.noCols);
     pdebug("%lu\n", bE.maxNoNonZero);
+    pdebug("");
     for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
-        pdebug("%f, ", bE.values[i]);
+        pdebug_("%f, ", bE.values[i]);
     }
     pdebug("\n");
+    pdebug("");
     for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
-        pdebug("%lu, ", bE.indices[i]);
+        pdebug_("%lu, ", bE.indices[i]);
     }
-    pdebug("\n\n");
+    pdebug_("\n\n");
 
     pdebug("== o ==\n");
     pdebug("%lu\n", res.noRows);
     pdebug("%lu\n", res.noCols);
     pdebug("%lu\n", res.maxNoNonZero);
+    pdebug("");
     for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-        pdebug("%f, ", res.values[i]);
+        pdebug_("%f, ", res.values[i]);
     }
-    pdebug("\n");
+    pdebug_("\n");
+    pdebug("");
     for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-        pdebug("%lu, ", res.indices[i]);
+        pdebug_("%lu, ", res.indices[i]);
     }
-    pdebug("\n");
+    pdebug_("\n");
 }
 
 /// @brief multiplies the matrices

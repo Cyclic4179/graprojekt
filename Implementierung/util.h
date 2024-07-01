@@ -33,8 +33,10 @@ inline void* __abort_null(void* value, char* desc, char* file, int line, char* m
 
 #ifdef DEBUG
 #define pdebug(...) fputs("DEBUG:    ", stderr); fprintf(stderr, __VA_ARGS__)
+#define pdebug_(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define DEBUG(...)
+#define pdebug(...)
+#define pdebug_(...)
 #endif
 
 #endif
