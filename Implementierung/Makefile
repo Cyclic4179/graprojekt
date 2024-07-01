@@ -7,9 +7,10 @@ CFLAGS := -Wall -Wextra -g -O2
 
 TARGET_EXEC := main
 
-BUILD_DIR := .
+BUILD_DIR := ./build
 SRC_DIR := .
 TESTS_DIR := ./tests
+INPUT_DIR := ./sample-inputs
 
 SRCS := $(shell find $(SRC_DIR) -name '*.c')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
@@ -17,7 +18,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 .PHONY: build run debug test clean
 
 # final build
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
+$(TARGET_EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@
 
 # build steps
@@ -26,20 +27,23 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-build: $(BUILD_DIR)/$(TARGET_EXEC)
+build: $(TARGET_EXEC)
 
 run: build
-	$(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o ./result
+	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
 
 debug: build
-	gdb --args $(BUILD_DIR)/$(TARGET_EXEC) -a ./Implementierung/sample-inputs/1.txt -b ./Implementierung/sample-inputs/1.txt -o /dev/null
-
+	gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
 
 test: build
 	for i in $(shell ls $(TESTS_DIR)); do \
-		got=$$($(BUILD_DIR)/$(TARGET_EXEC) -a $(TESTS_DIR)/$$i/a -b $(TESTS_DIR)/$$i/b); \
+		got=$$(./$(TARGET_EXEC) -a $(TESTS_DIR)/$$i/a -b $(TESTS_DIR)/$$i/b 2>/dev/null); \
 		expected=$$(cat $(TESTS_DIR)/$$i/res); \
-		[[ ! "$$got" = "$$expected" ]] && { \
+		if [[ "$$got" = "$$expected" ]] then { \
+			echo ---------------------; \
+			echo PASSED: testcase $$i; \
+			echo ; \
+		} else { \
 			echo ; \
 			echo ---------------------; \
 			echo FAILED: testcase $$i; \
@@ -56,11 +60,10 @@ test: build
 			echo but got:; \
 			echo $$got; \
             false; \
-		}; \
+		}; fi \
 	done && echo SUCCESS || exit 0
 
 clean:
-	find . -name "*.c.o" -type f -delete && rm ./main
-
+	rm -r ./build && rm ./main
 
 # vim set noexpandtab
