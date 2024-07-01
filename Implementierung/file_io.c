@@ -136,11 +136,11 @@ struct ELLPACK read_validate(FILE* file) {
         pos++;
     }
 
-    result.colPositions = (uint64_t*)abortIfNULL(malloc(itemsCount * sizeof(uint64_t)));
+    result.indices = (uint64_t*)abortIfNULL(malloc(itemsCount * sizeof(uint64_t)));
     for (long i = 0; i < itemsCount; i++)
     {
         char end = i == itemsCount - 1 ? '\n' : ',';
-        result.colPositions[i] = helper_read_int(string, &pos, end, "colPositions", 3);
+        result.indices[i] = helper_read_int(string, &pos, end, "indices", 3);
         pos++;
     }
 
@@ -177,7 +177,7 @@ void write(struct ELLPACK matrix, FILE* file) {
                 index++;
                 break;
             }
-            fprintf(file, "%lu,", matrix.colPositions[index++]);
+            fprintf(file, "%lu,", matrix.indices[index++]);
         }
     }
     fseek(file, -1, SEEK_CUR);

@@ -24,7 +24,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     }
     pdebug("\n");
     for (uint64_t i = 0; i < aE.noRows * aE.maxNoNonZero; i++) {
-        pdebug("%lu, ", aE.colPositions[i]);
+        pdebug("%lu, ", aE.indices[i]);
     }
     pdebug("\n\n");
 
@@ -37,7 +37,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     }
     pdebug("\n");
     for (uint64_t i = 0; i < bE.noRows * bE.maxNoNonZero; i++) {
-        pdebug("%lu, ", bE.colPositions[i]);
+        pdebug("%lu, ", bE.indices[i]);
     }
     pdebug("\n\n");
 
@@ -50,7 +50,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
     }
     pdebug("\n");
     for (uint64_t i = 0; i < res.noRows * res.maxNoNonZero; i++) {
-        pdebug("%lu, ", res.colPositions[i]);
+        pdebug("%lu, ", res.indices[i]);
     }
     pdebug("\n");
 }
@@ -72,7 +72,7 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
     }
     for (uint64_t i = 0; i < right.noRows * right.maxNoNonZero; i++) {
         if (right.values[i] != 0.f) {
-            maxRowCounts[right.colPositions[i]]++;
+            maxRowCounts[right.indices[i]]++;
         }
     }
     uint64_t maxRow = 0;                     // maximum number of non-zero entries of columns of right // TODO unused so far
@@ -94,14 +94,14 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
     result.maxNoNonZero = maxNoNonZeroLimit;      // TODO proven that this is correct yet
 
     result.values = (float*)malloc(result.noRows * result.maxNoNonZero * sizeof(float));
-    result.colPositions = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
-    if (result.values == NULL || result.colPositions == NULL) {
+    result.indices = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
+    if (result.values == NULL || result.indices == NULL) {
         if (result.values != NULL) {
             free(result.values);
             fprintf(stderr, "Error allocating memory");
         }
-        if (result.colPositions != NULL) {
-            free(result.colPositions);
+        if (result.indices != NULL) {
+            free(result.indices);
             fprintf(stderr, "Error allocating memory");
         }
         exit(EXIT_FAILURE);
@@ -122,20 +122,20 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
             for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
 
                 // leftColRightRow is the column index of the left and row index of the right matrix
-                uint64_t leftColRightRow = left.colPositions[leftRowIndex * left.maxNoNonZero + j];
+                uint64_t leftColRightRow = left.indices[leftRowIndex * left.maxNoNonZero + j];
 
                 // add here: if padded (= invalid value (float of 0.0)) then break
 
                 // Iterates over the column of right to check if value of right is not 0 / row of right has entry for that position
                 for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero; k++) {
-                    if (right.colPositions[k] == l) {
+                    if (right.indices[k] == l) {
                         sum += left.values[leftRowIndex * left.maxNoNonZero + j] * right.values[k];
                     }
                 }
             }
             // set value of result to calculated product
             if (sum != 0.0) {
-                result.colPositions[resultPos] = l;
+                result.indices[resultPos] = l;
                 result.values[resultPos++] = sum;
             }
         }
@@ -143,7 +143,7 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
         for (; resultPos < (i + 1) * result.maxNoNonZero; resultPos++)
         {
             result.values[resultPos] = 0.f;
-            result.colPositions[resultPos] = 0;
+            result.indices[resultPos] = 0;
         }
     }
 
@@ -167,14 +167,14 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
         for (uint64_t j = 0; j < result.maxNoNonZero; j++) {
             if (result.values[i * result.maxNoNonZero + j] != 0.f) {
                 result.values[realResultPointer] = result.values[i * result.maxNoNonZero + j];
-                result.colPositions[realResultPointer] = result.colPositions[i * result.maxNoNonZero + j];
+                result.indices[realResultPointer] = result.indices[i * result.maxNoNonZero + j];
                 realResultPointer++;
             }
         }
         for (; realResultPointer < (i + 1) * realResultMaxNoNonZero; realResultPointer++)
         {
             result.values[realResultPointer] = 0.f;
-            result.colPositions[realResultPointer] = 0;
+            result.indices[realResultPointer] = 0;
         }
     }
     result.maxNoNonZero = realResultMaxNoNonZero;
