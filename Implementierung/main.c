@@ -4,11 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 #include <errno.h>
 
+#include "bits/time.h"
 #include "mult.h"
 #include "file_io.h"
 #include "ellpack.h"
+#include "time.h"
 #include "util.h"
 
 
@@ -16,6 +20,7 @@ const char* usage_msg =
     "Usage: %s [options]\n";
 
 const char* help_msg =
+    // TODO include valid impl_numbers in help_msg
     //"\nRequired arguments:\n"
     "\n"
     "Optional arguments:\n"
@@ -23,13 +28,14 @@ const char* help_msg =
     "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
     "    -o PATH     path to result (if omitted: stdout)\n"
     "    -V N        impl number (non-negative integer, default: 0)\n"
-    "    -B N        time execution, N iterations (default: don't time, disables printing result to stdout, if N omitted: 1 iteration)\n"
+    "    -B N        time execution, N (positive) iterations (default: don't time, if set, no result will be printed to file, if N omitted: 1 iteration)\n"
     "    -h, --help  Show help and exit\n"
     "\n"
     "Examples:\n"
     "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
     "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
-    "%s -V 5 -B <sample-inputs/1.txt <sample-inputs/2.txt\n";
+    "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
+    "%s -V 0 -B 9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
 
 void print_usage(const char* pname) {
     fprintf(stderr, usage_msg, pname, pname, pname);
@@ -37,12 +43,12 @@ void print_usage(const char* pname) {
 
 void print_help(const char* pname) {
     print_usage(pname);
-    fprintf(stderr, help_msg, pname, pname, pname);
+    fprintf(stderr, help_msg, pname, pname, pname, pname);
 }
 
-uint64_t parse_int(char opt, const char* pname) {
+int parse_int(char opt, const char* pname) {
     char* ptr = 0;
-    uint64_t res = strtoll(optarg, &ptr, 10);
+    uint64_t res = strtol(optarg, &ptr, 10);
 
     if (*ptr != '\0' || errno == ERANGE) {
         fprintf(stderr, "not a valid integer for option -%c: '%s'", opt, optarg);
@@ -72,7 +78,7 @@ int main(int argc, char** argv) {
          *out = NULL;
     int impl_version = 0;
     bool timeit = false;
-    int rounds = 1;
+    int iterations = 1;
 
     static struct option long_opts[] = {
         {"help",    no_argument,    NULL,   'h'},
@@ -86,8 +92,13 @@ int main(int argc, char** argv) {
                 break;
             case 'B':
                 timeit = true;
-                if (optarg) {
-                    rounds = parse_int('B', pname);
+                if (optarg != NULL) {
+                    iterations = parse_int('B', pname);
+                    if (iterations < 0) {
+                        fprintf(stderr, "invalid number of iterations: %d\n", iterations);
+                        print_help(pname);
+                        exit(EXIT_SUCCESS);
+                    }
                 }
                 break;
             case 'a':
@@ -108,13 +119,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    //abortIfNULL_msg(a, "(fixmelater) for now, '-a' must be set");
-    //abortIfNULL_msg(b, "(fixmelater) for now, '-b' must be set");
-    //abortIfNULL_msg(out, "(fixmelater) for now, '-out' must be set");
-
-    // "    -V N        impl number (non-negative integer, default: 0)\n"
-    // "    -B N        time execution, N iterations (default: don't time, if N omitted: 1 iteration)\n"
-
     void (*matr_mult_ellpack_ptr)(const void*, const void*, void*);
 
     switch (impl_version) {
@@ -127,8 +131,7 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
     }
 
-    FILE* file_a;
-    FILE* file_b;
+    FILE *file_a, *file_b;
 
     if (a != NULL) {
         file_a = abortIfNULL(fopen(a, "r"));
@@ -142,31 +145,54 @@ int main(int argc, char** argv) {
         file_b = stdin;
     }
 
+    const struct ELLPACK a_lpk = elpk_read_validate(file_a);
+    const struct ELLPACK b_lpk = elpk_read_validate(file_b);
+
+    if (a != NULL) fclose(file_a);
+    if (b != NULL) fclose(file_b);
+
     /*FILE* file_a = (fopen(a, "r")); // alternative from Simon for debugging
     FILE* file_b = (fopen(b, "r"));
     if (file_a == NULL || file_b == NULL) {
         abort();
     }*/
-    const struct ELLPACK a_lpk = read_validate(file_a);
-    const struct ELLPACK b_lpk = read_validate(file_b);
-    fclose(file_a);
-    fclose(file_b);
 
     struct ELLPACK res_lpk;
-    matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
 
-    FILE* file_out;
-    if (out != NULL) {
-        file_out = abortIfNULL(fopen(out, "w"));
+    if (timeit) {
+        struct timespec start, end;
+        double elapsed_time;
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
+        for (int i = 0; i < iterations; i++) {
+            matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
+            sleep(1);
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        elapsed_time = (end.tv_sec - start.tv_sec - iterations) * 1.0e9 +
+            (end.tv_nsec - start.tv_nsec);
+        printf("Average elapsed time per iteration: %f seconds\n", elapsed_time / iterations / 1.0e9);
+
     } else {
-        file_out = stdout;
+        matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
+
+        FILE* file_out;
+        if (out != NULL) {
+            file_out = abortIfNULL(fopen(out, "w"));
+        } else {
+            file_out = stdout;
+        }
+
+        /*FILE* file_out = fopen(out, "w"); // alternative from Simon for debugging
+          if (file_out == NULL) {
+          abort();
+          }*/
+        elpk_write(res_lpk, file_out);
+        fclose(file_out);
     }
-    /*FILE* file_out = fopen(out, "w"); // alternative from Simon for debugging
-    if (file_out == NULL) {
-        abort();
-    }*/
-    write(res_lpk, file_out);
-    fclose(file_out);
 
     free_ellpack(a_lpk);
     free_ellpack(b_lpk);
