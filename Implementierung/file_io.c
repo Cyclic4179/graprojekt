@@ -110,12 +110,14 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
 struct ELLPACK read_validate(FILE* file) {
     // TODO change file to FILE*
     // TODO better version later
-    char string[1024];
+    char* string = NULL;
+    size_t len = 0;
     struct ELLPACK result = {};
     long pos = 0;
 
-    int last = fread(string, sizeof(*string), sizeof(string), file);
-    string[last] = 0;
+    //int last = fread(string, sizeof(*string), sizeof(string), file);
+    abortIfNULL((void*) (getline(&string, &len, file) + 1));
+    //string[last] = 0;
     //printf("%s", string);
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
@@ -125,21 +127,24 @@ struct ELLPACK read_validate(FILE* file) {
     pos++;
 
     result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero", 1);
-    pos++;
+
+    abortIfNULL((void*) (getline(&string, &len, file) + 1));
+    pos = 0;
 
     long itemsCount = result.noRows * result.maxNoNonZero;
 
     result.values = (float*)abortIfNULL(malloc(itemsCount * sizeof(float)));
-    for (long i = 0; i < itemsCount; i++)
-    {
+    for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.values[i] = helper_read_float(string, &pos, end, "values");
         pos++;
     }
 
+    abortIfNULL((void*) (getline(&string, &len, file) + 1));
+    pos = 0;
+
     result.indices = (uint64_t*)abortIfNULL(malloc(itemsCount * sizeof(uint64_t)));
-    for (long i = 0; i < itemsCount; i++)
-    {
+    for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.indices[i] = helper_read_int(string, &pos, end, "indices", 3);
         pos++;
