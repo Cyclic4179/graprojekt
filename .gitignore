@@ -2,8 +2,8 @@
 # build
 #
 
-build
-sample-output
+sample-output/
+main
 
 #
 # clion

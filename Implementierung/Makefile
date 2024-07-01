@@ -7,8 +7,8 @@ CFLAGS := -Wall -Wextra -g -O2
 
 TARGET_EXEC := main
 
-BUILD_DIR := ./build
-SRC_DIR := ./Implementierung
+BUILD_DIR := .
+SRC_DIR := .
 TESTS_DIR := ./tests
 
 SRCS := $(shell find $(SRC_DIR) -name '*.c')
@@ -60,8 +60,7 @@ test: build
 	done && echo SUCCESS || exit 0
 
 clean:
-	if [[ -d $(BUILD_DIR) ]]; then rm -r $(BUILD_DIR); fi
+	find . -name "*.c.o" -type f -delete && rm ./main
 
 
 # vim set noexpandtab
-
