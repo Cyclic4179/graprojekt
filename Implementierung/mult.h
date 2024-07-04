@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 
+#define MAX_IMPL_VERSION 0
+
 /// @brief main function
 /// @param a matrix a
 /// @param b matrix b

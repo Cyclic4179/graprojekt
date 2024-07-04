@@ -1,0 +1,118 @@
+#include <stdbool.h>
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+#include "mult.h"
+#include "ellpack.h"
+#include "time.h"
+#include "parseargs.h"
+
+
+const char* usage_msg =
+    "Usage: %s [options]\n";
+
+const char* help_msg =
+    "\n"
+    "Optional arguments:\n"
+    "    -a PATH\n"
+    "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
+    "    -o PATH     path to result (if omitted: stdout)\n"
+    "    -V N        impl number (integer between 0 and %d, default: 0)\n"
+    "    -B\n"
+    "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
+    "    -h, --help  Show help and exit\n"
+    "\n"
+    "Examples:\n"
+    "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
+    "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
+    "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
+    "%s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
+
+void print_usage(const char* pname) {
+    fprintf(stderr, usage_msg, pname, pname, pname);
+}
+
+void print_help(const char* pname) {
+    print_usage(pname);
+    fprintf(stderr, help_msg, MAX_IMPL_VERSION, pname, pname, pname, pname);
+}
+
+int parse_int(char opt, const char* pname) {
+    char* ptr = 0;
+    int res = strtol(optarg, &ptr, 10);
+
+    if (*ptr != '\0' || errno == ERANGE) {
+        fprintf(stderr, "not a valid integer for option -%c: '%s'", opt, optarg);
+        if (errno == ERANGE) {
+            fprintf(stderr, " (%s)\n", strerror(errno));
+        } else {
+            fputs("\n", stderr);
+        }
+        print_help(pname);
+        exit(EXIT_FAILURE);
+    }
+
+    return res;
+}
+
+struct ARGS parse_args(int argc, char** argv) {
+    const char* pname = argv[0];
+
+    if (argc == 1) {
+        print_usage(pname);
+        exit(EXIT_FAILURE);
+    }
+
+    int opt;
+    struct ARGS parsed_args;
+    parsed_args.a = NULL,
+    parsed_args.b = NULL,
+    parsed_args.out = NULL;
+    parsed_args.impl_version = 0;
+    parsed_args.timeit = false;
+    parsed_args.iterations = 1;
+
+    static struct option long_opts[] = {
+        {"help",    no_argument,    NULL,   'h'},
+        {0, 0, 0, 0} // required (man 3 getopt_long)
+    };
+
+    while ((opt = getopt_long(argc, argv, "V:B::a:b:o:h", long_opts, NULL)) != -1) {
+        switch (opt) {
+            case 'V':
+                parsed_args.impl_version = parse_int('B', pname);
+                break;
+            case 'B':
+                parsed_args.timeit = true;
+                if (optarg) {
+                    parsed_args.iterations = parse_int('B', pname);
+                    if (parsed_args.iterations < 0 || parsed_args.iterations > MAX_IMPL_VERSION) {
+                        fprintf(stderr, "invalid number of iterations: %d\n", parsed_args.iterations);
+                        print_usage(pname);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                break;
+            case 'a':
+                parsed_args.a = optarg;
+                break;
+            case 'b':
+                parsed_args.b = optarg;
+                break;
+            case 'o':
+                parsed_args.out = optarg;
+                break;
+            case 'h':
+                print_help(pname);
+                exit(EXIT_SUCCESS);
+            default: /* '?' */
+                print_usage(pname);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    return parsed_args;
+}
