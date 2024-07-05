@@ -84,12 +84,17 @@ struct ARGS parse_args(int argc, char** argv) {
         switch (opt) {
             case 'V':
                 parsed_args.impl_version = parse_int('B', pname);
+                if (parsed_args.impl_version < 0 || parsed_args.impl_version > MAX_IMPL_VERSION) {
+                    fprintf(stderr, "invalid impl version: %d\n", parsed_args.impl_version);
+                    print_usage(pname);
+                    exit(EXIT_FAILURE);
+                }
                 break;
             case 'B':
                 parsed_args.timeit = true;
                 if (optarg) {
                     parsed_args.iterations = parse_int('B', pname);
-                    if (parsed_args.iterations < 0 || parsed_args.iterations > MAX_IMPL_VERSION) {
+                    if (parsed_args.iterations < 0) {
                         fprintf(stderr, "invalid number of iterations: %d\n", parsed_args.iterations);
                         print_usage(pname);
                         exit(EXIT_FAILURE);
