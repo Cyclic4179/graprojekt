@@ -68,6 +68,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* result) {
 struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
 {
     // Array storing the amounts of non-zero entries per column in right    // TODO unused so far
+    /*
     uint64_t* maxRowCounts = (uint64_t*)malloc(right.noRows * sizeof(uint64_t));
     if (maxRowCounts == NULL) {
         fprintf(stderr, "Error allocating memory");
@@ -88,9 +89,9 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
         }
     }
     free(maxRowCounts);
-
+    */
     // ############################## Start used code ##############################
-    // ############################## Setup: instanciating and memory allocation ##############################
+    // ############################## Setup: instantiating and memory allocation ##############################
 
     struct ELLPACK result;
     result.noRows = left.noRows;
@@ -188,6 +189,108 @@ struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right)
     return result;
 }
 
+struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right)
+{
+    // ############################## Setup: instantiating and memory allocation ##############################
+
+    struct ELLPACK result;
+    result.noRows = left.noRows;
+    result.noCols = right.noCols;
+
+    uint64_t maxNoNonZeroLimit = (right.noCols > left.maxNoNonZero * right.maxNoNonZero) ? left.maxNoNonZero * right.maxNoNonZero : right.noCols;
+    result.maxNoNonZero = maxNoNonZeroLimit;      // TODO proven that this is correct yet
+
+    result.values = (float*)malloc(result.noRows * result.maxNoNonZero * sizeof(float));
+    result.indices = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
+    float* sum = malloc(right.noCols * sizeof(float));  // stores the products af a row of left with all columns of right
+    if (result.values == NULL || result.indices == NULL || sum == NULL) {
+        if (result.values != NULL) {
+            free(result.values);
+            fprintf(stderr, "Error allocating memory");
+        }
+        if (result.indices != NULL) {
+            free(result.indices);
+            fprintf(stderr, "Error allocating memory");
+        }
+        if (sum != NULL) {
+            free(sum);
+            fprintf(stderr, "Error allocating memory");
+        }
+        exit(EXIT_FAILURE);
+    }
+
+    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t biggerDimension = (left.noRows > right.noCols) ? left.noRows : right.noCols;
+
+    // ############################## calculation of actual values ##############################
+
+    for (uint64_t i = 0; i < biggerDimension; i++) // Iterates over the rows of left
+    {
+        uint64_t leftRowIndex = i % left.noRows;
+
+        for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
+            uint64_t leftAccessIndex = leftRowIndex * left.maxNoNonZero + j;
+            // leftColRightRow is the column index of the left and row index of the right matrix
+            uint64_t leftColRightRow = left.indices[leftAccessIndex];
+
+            // Iterates over the row of right
+            for (uint64_t k = 0; k < right.maxNoNonZero; k++) {
+                sum[k] += left.values[leftAccessIndex] * right.values[k + leftColRightRow * right.maxNoNonZero];
+            }
+        }
+        // set value of result to calculated product
+        for (uint64_t j = 0; j < right.noCols; j++)
+        {
+            if (sum[j] != 0.0) {
+                result.indices[resultPos] = j;
+                result.values[resultPos++] = sum[j];
+                sum[j] = 0;
+            }
+        }
+        // add padding
+        for (; resultPos < (i + 1) * result.maxNoNonZero; resultPos++)
+        {
+            result.values[resultPos] = 0.f;
+            result.indices[resultPos] = 0;
+        }
+    }
+    free(sum);
+
+    // ############################## shrink result matrix by removing too long padding ##############################
+
+    uint64_t realResultMaxNoNonZero = 0;
+    uint64_t rowCounter;
+
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        rowCounter = 0;
+        for (uint64_t j = 0; j < result.maxNoNonZero; ++j) {
+            if (result.values[result.maxNoNonZero * i + j] != 0.f) {
+                rowCounter++;
+            }
+        }
+        if (rowCounter > realResultMaxNoNonZero) {
+            realResultMaxNoNonZero = rowCounter;
+        }
+    }
+
+    uint64_t realResultPointer = 0;
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        for (uint64_t j = 0; j < result.maxNoNonZero; j++) {
+            if (result.values[i * result.maxNoNonZero + j] != 0.f) {
+                result.values[realResultPointer] = result.values[i * result.maxNoNonZero + j];
+                result.indices[realResultPointer] = result.indices[i * result.maxNoNonZero + j];
+                realResultPointer++;
+            }
+        }
+        for (; realResultPointer < (i + 1) * realResultMaxNoNonZero; realResultPointer++)
+        {
+            result.values[realResultPointer] = 0.f;
+            result.indices[realResultPointer] = 0;
+        }
+    }
+    result.maxNoNonZero = realResultMaxNoNonZero;
+    return result;
+}
 /*
  * Step 1: read matrices
  * Step 2: make sure everything is valid
