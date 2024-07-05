@@ -9,7 +9,7 @@ struct ELLPACK {
     uint64_t* indices;
 };
 
-inline void free_ellpack(struct ELLPACK e) {
+__attribute__((always_inline)) inline void free_elpk(struct ELLPACK e) {
     free(e.values);
     free(e.indices);
 }

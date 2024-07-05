@@ -1,14 +1,13 @@
-/// if you guys want to move this elsewhere i dont mind, just didnt know where to put
-
 #ifndef UTIL_GUARD
 #define UTIL_GUARD
 
-#include <string.h>
+//__attribute__((always_inline)) inline void* __abort_null(void* value, char* desc, const char* func, char* file, int line, char* msg);
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <string.h>
 
-inline void* __abort_null(void* value, char* desc, const char* func, char* file, int line, char* msg) {
+__attribute__((always_inline)) inline void* __abort_null(void* value, char* desc, const char* func, char* file, int line, char* msg) {
     if (!value) {
         fputs("ERROR:    ", stderr);
         if (*msg != 0) {

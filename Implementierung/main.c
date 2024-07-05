@@ -1,9 +1,9 @@
 #include <unistd.h>
+#include <time.h>
 
 #include "mult.h"
 #include "file_io.h"
 #include "ellpack.h"
-#include "time.h"
 #include "util.h"
 #include "parseargs.h"
 
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 
         elapsed_time = (end.tv_sec - start.tv_sec - args.iterations) * 1.0e9 +
             (end.tv_nsec - start.tv_nsec);
-        printf("Average elapsed time per iteration: %f seconds\n", elapsed_time / args.iterations / 1.0e9);
+        printf("Average elapsed time per iteration: %.6f seconds\n", elapsed_time / args.iterations / 1.0e9);
 
     } else {
         matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
         fclose(file_out);
     }
 
-    free_ellpack(a_lpk);
-    free_ellpack(b_lpk);
-    free_ellpack(res_lpk);
+    free_elpk(a_lpk);
+    free_elpk(b_lpk);
+    free_elpk(res_lpk);
     exit(EXIT_SUCCESS);
 }

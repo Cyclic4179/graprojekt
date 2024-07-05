@@ -2,8 +2,10 @@ CC := gcc
 
 # -Wall:			Print warnings
 # -Wextra:			Enable additional warnings not covered by "-Wall"
+# -Wpedantic:		Issue warnings needed for strict compliance to the standard
 # -g				Generates debug information to be used by GDB debugger
-CFLAGS := -Wall -Wextra -g -O2
+# -std=c17
+CFLAGS := -Wall -Wextra -Wpedantic
 
 TARGET_EXEC := main
 
@@ -32,7 +34,12 @@ build: $(TARGET_EXEC)
 run: build
 	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
 
+debug: CFLAGS += -g
 debug: build
+	gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
+
+O2: CFLAGS += -O2
+O2: build
 	gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
 
 test: build
@@ -64,6 +71,7 @@ test: build
 	done && echo SUCCESS || exit 0
 
 clean:
-	rm -r ./build && rm ./main
+	if test -d ./build; then rm -r ./build; fi
+	if test -e ./main; then rm ./main; fi
 
 # vim set noexpandtab
