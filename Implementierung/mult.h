@@ -19,5 +19,6 @@ void matr_mult_ellpack(const void* a, const void* b, void* result);
 /// @param right right matrix
 /// @result multiplied matrix
 struct ELLPACK multiply(struct ELLPACK left, struct ELLPACK right);
+struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right);
 
 #endif

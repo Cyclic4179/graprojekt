@@ -8,7 +8,7 @@
 /// @param b matrix b
 /// @param result result of multiplication
 void matr_mult_ellpack(const void* a, const void* b, void* result) {
-    *(struct ELLPACK*)result = multiply(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
+    *(struct ELLPACK*)result = multiply_V1(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
 
     // ! DEBUG
     const struct ELLPACK aE = *(struct ELLPACK*)a;
@@ -203,7 +203,8 @@ struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right)
     result.values = (float*)malloc(result.noRows * result.maxNoNonZero * sizeof(float));
     result.indices = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
     float* sum = malloc(right.noCols * sizeof(float));  // stores the products af a row of left with all columns of right
-    if (result.values == NULL || result.indices == NULL || sum == NULL) {
+    uint64_t* positions = malloc(right.noCols * sizeof(uint64_t));
+    if (result.values == NULL || result.indices == NULL || sum == NULL || positions == NULL) {
         if (result.values != NULL) {
             free(result.values);
             fprintf(stderr, "Error allocating memory");
@@ -216,11 +217,18 @@ struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right)
             free(sum);
             fprintf(stderr, "Error allocating memory");
         }
+        if (positions != NULL) {
+            free(positions);
+            fprintf(stderr, "Error allocating memory");
+        }
         exit(EXIT_FAILURE);
     }
 
     uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
     uint64_t biggerDimension = (left.noRows > right.noCols) ? left.noRows : right.noCols;
+    for (uint64_t j = 0; j < right.noCols; j++) {
+        sum[j] = 0.0;
+    }
 
     // ############################## calculation of actual values ##############################
 
@@ -235,16 +243,17 @@ struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right)
 
             // Iterates over the row of right
             for (uint64_t k = 0; k < right.maxNoNonZero; k++) {
-                sum[k] += left.values[leftAccessIndex] * right.values[k + leftColRightRow * right.maxNoNonZero];
+                sum[j] += left.values[leftAccessIndex] * right.values[k + leftColRightRow * right.maxNoNonZero];
+                positions[j] = leftColRightRow;
             }
         }
         // set value of result to calculated product
         for (uint64_t j = 0; j < right.noCols; j++)
         {
             if (sum[j] != 0.0) {
-                result.indices[resultPos] = j;
+                result.indices[resultPos] = positions[j];
                 result.values[resultPos++] = sum[j];
-                sum[j] = 0;
+                sum[j] = 0.0;
             }
         }
         // add padding
@@ -255,6 +264,7 @@ struct ELLPACK multiply_V1(struct ELLPACK left, struct ELLPACK right)
         }
     }
     free(sum);
+    free(positions);
 
     // ############################## shrink result matrix by removing too long padding ##############################
 
