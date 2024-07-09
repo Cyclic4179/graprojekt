@@ -28,8 +28,6 @@ __attribute__((always_inline)) inline void* __abort_null(void* value, char* desc
 //#define abortIfNEQ(i,j) __abort_null(i-j, "#i - \\#j")
 //abortIfNEQ(i, j)
 
-// comment this out to disable debug output
-#define DEBUG
 
 #ifdef DEBUG
 #define pdebug(...) fprintf(stderr, "DEBUG:    " __VA_ARGS__)
