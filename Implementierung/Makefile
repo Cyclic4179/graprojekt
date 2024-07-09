@@ -4,8 +4,11 @@ CC := gcc
 # -Wextra:			Enable additional warnings not covered by "-Wall"
 # -Wpedantic:		Issue warnings needed for strict compliance to the standard
 # -g				Generates debug information to be used by GDB debugger
-# -std=c17
-CFLAGS := -Wall -Wextra -Wpedantic
+# -std=c17          Use c 17 standard
+# -std=gnu17        Use gnu 17 standard
+# -D_POSIX_C_SOURCE=199309L
+#                   Include libs to use clock_gettime(CLOCK_MONOTONIC, ...);
+CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17
 
 TARGET_EXEC := main
 
