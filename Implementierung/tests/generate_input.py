@@ -25,7 +25,7 @@ class InputGenerator:
 
         return not randint(0, sparsity)
 
-    def value(self, max: int, floats: bool) -> float | int:
+    def value(self, max: int, floats: bool) -> str:
         """Randomly generates a value
 
         Args:
@@ -33,13 +33,13 @@ class InputGenerator:
             floats (bool): should floats be returned
 
         Returns:
-            float | int: generated value
+            str: generated value
         """
 
         if floats:
-            return uniform(MIN, max)
+            return "{0:.10f}".format(uniform(MIN, max))
         else:
-            return randint(MIN, max)
+            return f"{randint(MIN, max)}"
 
     def index(self, max: int, min: int) -> int:
         """Randomly generates a index
