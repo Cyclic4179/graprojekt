@@ -176,10 +176,10 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
             }
 
             if (first) {
-                fprintf(file, "%g", matrix.values[index++]);
+                fprintf(file, "%f", matrix.values[index++]);
                 first = false;
             } else {
-                fprintf(file, ",%g", matrix.values[index++]);
+                fprintf(file, ",%f", matrix.values[index++]);
             }
         }
     }
