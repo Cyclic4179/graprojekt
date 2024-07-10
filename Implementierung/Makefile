@@ -24,7 +24,29 @@ SRCS := $(shell find $(SRC_DIR) -name '*.c')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
 
+MODE_FILE := $(BUILD_DIR)/.last-mode
+LAST_MODE := $(shell [ -f $(MODE_FILE) ] && cat $(MODE_FILE) || echo none)
+RELEASE_MODE := release
+DEBUG_MODE := debug
+
 .PHONY: build run debug test clean help
+
+build: CFLAGS += $(CRELEASEFLAGS)
+build: MODE := $(RELEASE_MODE)
+build: .check-mode $(TARGET_EXEC)
+	echo $(RELEASE_MODE) > $(MODE_FILE)
+
+#run: build
+#	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
+
+debug: CFLAGS += $(CDEBUGFLAGS)
+debug: MODE := $(DEBUG_MODE)
+debug: .check-mode $(TARGET_EXEC)
+	echo $(DEBUG_MODE) > $(MODE_FILE)
+	@#gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
+
+.check-mode:
+	if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; fi
 
 # final build
 $(TARGET_EXEC): $(OBJS)
@@ -34,20 +56,6 @@ $(TARGET_EXEC): $(OBJS)
 $(BUILD_DIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
-
-
-build: $(TARGET_EXEC)
-
-#run: build
-#	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
-
-debug: CFLAGS += $(CDEBUGFLAGS)
-debug: build
-	@#gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
-
-release: CFLAGS += $(CRELEASEFLAGS)
-release: build
-	@#gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
 
 test: build
 	@for i in $(shell ls $(TESTS_DIR)); do \
