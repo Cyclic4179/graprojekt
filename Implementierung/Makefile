@@ -36,9 +36,6 @@ build: MODE := $(RELEASE_MODE)
 build: .check-mode $(TARGET_EXEC)
 	@echo $(RELEASE_MODE) > $(MODE_FILE)
 
-#run: build
-#	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
-
 debug: CFLAGS += $(CDEBUGFLAGS)
 debug: MODE := $(DEBUG_MODE)
 debug: .check-mode $(TARGET_EXEC)
@@ -56,6 +53,9 @@ $(TARGET_EXEC): $(OBJS)
 $(BUILD_DIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+run: build
+	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
 
 test: build
 	@./tests/test.sh $(realpath $(TARGET_EXEC) $(TESTS_DIR))
