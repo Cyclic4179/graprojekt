@@ -2,6 +2,7 @@
 
 import os
 from random import randint, uniform
+from argparse import ArgumentParser, HelpFormatter
 
 MIN = 0
 MAX = pow(2, 64) - 1
@@ -121,7 +122,7 @@ class InputGenerator:
             f.write(f"{self.index(noCols,previous + 1)}\n")
 
 
-if __name__ == "__main__":
+def default():
     ig = InputGenerator()
 
     ig.create("1", True, 4, 4, 2, 99, 3, False)
@@ -141,3 +142,68 @@ if __name__ == "__main__":
 
     ig.create("6", True, 9, 9, 4, MAX, 3, True)
     ig.create("6", False, 9, 9, 4, MAX, 3, True)
+
+
+def main():
+    parser = ArgumentParser(
+        prog="generate_input",
+        formatter_class=lambda prog: HelpFormatter(prog, max_help_position=80),
+    )
+    parser.add_argument("--folder", help="Folder to generate into", type=str)
+
+    parser.add_argument("--aNoRows", help="A: number of rows", type=int)
+    parser.add_argument("--aNoCols", help="A: number of columns", type=int)
+    parser.add_argument(
+        "--aNoNonZero", help="A: maximal number of non zero values per row", type=int
+    )
+    parser.add_argument("--aMax", help="A: highest possible value", type=int)
+    parser.add_argument(
+        "--aSparsity", help="A: Every sparsity. value remains empty", type=int
+    )
+    parser.add_argument(
+        "--aFloats", help="A: should floats be used as values", type=bool
+    )
+
+    parser.add_argument("--bNoRows", help="B: number of rows", type=int)
+    parser.add_argument("--bNoCols", help="B: number of columns", type=int)
+    parser.add_argument(
+        "--bNoNonZero", help="B: maximal number of non zero values per row", type=int
+    )
+    parser.add_argument("--bMax", help="B: highest possible value", type=int)
+    parser.add_argument(
+        "--bSparsity", help="B: Every sparsity. value remains empty", type=int
+    )
+    parser.add_argument(
+        "--bFloats", help="B: should floats be used as values", type=bool
+    )
+
+    args = parser.parse_args()
+
+    if args.folder is None:
+        default()
+    else:
+        ig = InputGenerator()
+        ig.create(
+            args.folder,
+            True,
+            args.aNoRows,
+            args.aNoCols,
+            args.aNoNonZero,
+            args.aMax,
+            args.aSparsity,
+            args.aFloats,
+        )
+        ig.create(
+            args.folder,
+            False,
+            args.bNoRows,
+            args.bNoCols,
+            args.bNoNonZero,
+            args.bMax,
+            args.bSparsity,
+            args.bFloats,
+        )
+
+
+if __name__ == "__main__":
+    main()
