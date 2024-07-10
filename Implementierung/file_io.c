@@ -151,23 +151,23 @@ struct ELLPACK elpk_read_validate(FILE* file) {
     return result;
 }
 
-/// @brief get string from float without trailing zeros and without scientific notation
-char* ftostring(float f) {
-#define BUFSIZE 256
-    char* num = abortIfNULL(malloc(sizeof(char) * BUFSIZE));
-    int i = snprintf(num, BUFSIZE, "%f", f);
-#undef BUFSIZE
+/// @brief write into string from float without trailing zeros and without scientific notation
+/// should do the same as snprintf(s, "%g", f) for small values
+/// @param n max-size of string
+/// @param s writable string
+/// @param f float value to convert
+void ftostr(size_t n, char s[n], float f) {
+    int i = snprintf(s, n, "%f", f);
     for (int j = i-1; j >= 0; j--) {
-        if (num[j] != '0') {
-            if (num[j] == '.') {
-                num[j] = 0;
+        if (s[j] != '0') {
+            if (s[j] == '.') {
+                s[j] = 0;
             } else {
-                num[j+1] = 0;
+                s[j+1] = 0;
             }
             break;
         }
     }
-    return num;
 }
 
 /// @brief writes the matrix to the file
@@ -180,6 +180,7 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
 
     index = 0;
     bool first = true;
+    char s[256];
 
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
@@ -194,15 +195,12 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 break;
             }
 
+            ftostr(sizeof(s), s, matrix.values[index++]);
             if (first) {
-                // should print the same except for scientific notation
-                fprintf(file, "%s", ftostring(matrix.values[index++]));
-                //fprintf(file, "%g", matrix.values[index++]);
+                fprintf(file, "%s", s);
                 first = false;
             } else {
-                // should print the same except for scientific notation
-                fprintf(file, ",%s", ftostring(matrix.values[index++]));
-                //fprintf(file, ",%g", matrix.values[index++]);
+                fprintf(file, ",%s", s);
             }
         }
     }
