@@ -1,20 +1,16 @@
 #!/usr/bin/env bash
 #
 # $1: executable
-# $2: test dir
 
 executable=$1
-test_dir=$2
 
-tests=`find $test_dir/* -maxdepth 0 -type d`
+tests=`find * -maxdepth 0 -type d -not -name 'generated'`
 
 for i in $tests; do
     got=$($executable -a $i/a -b $i/b 2>/dev/null)
     expected=$(cat $i/res)
     if [[ "$got" = "$expected" ]]; then
-        #echo ---------------------
         echo PASSED: testcase `basename $i`
-        #echo
     else
         echo
         echo ---------------------
@@ -31,6 +27,10 @@ for i in $tests; do
         echo
         echo but got:
         echo $got
-        false
+        failed=1
     fi
-done && echo SUCCESS || exit 0
+done
+
+if test -z "$failed"; then
+    echo SUCCESS
+fi

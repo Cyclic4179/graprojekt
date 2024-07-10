@@ -1,13 +1,12 @@
 #ifndef UTIL_GUARD
 #define UTIL_GUARD
 
-//__attribute__((always_inline)) inline void* __abort_null(void* value, char* desc, const char* func, char* file, int line, char* msg);
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-__attribute__((always_inline)) inline void* __abort_null(void* value, char* desc, const char* func, char* file, int line, char* msg) {
+__attribute__((always_inline)) inline void* __abort_null(void* value, const char* desc, const char* func, const char* file, int line, const char* msg) {
     if (!value) {
         fputs("ERROR:    ", stderr);
         if (*msg != 0) {

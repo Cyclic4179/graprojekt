@@ -29,21 +29,24 @@ LAST_MODE := $(shell [ -f $(MODE_FILE) ] && cat $(MODE_FILE) || echo none)
 RELEASE_MODE := release
 DEBUG_MODE := debug
 
-.PHONY: build run debug test clean help
+
+.PHONY: build debug run test clean help
+
 
 build: CFLAGS += $(CRELEASEFLAGS)
 build: MODE := $(RELEASE_MODE)
 build: .check-mode $(TARGET_EXEC)
 	@echo $(RELEASE_MODE) > $(MODE_FILE)
 
+
 debug: CFLAGS += $(CDEBUGFLAGS)
 debug: MODE := $(DEBUG_MODE)
 debug: .check-mode $(TARGET_EXEC)
 	@echo $(DEBUG_MODE) > $(MODE_FILE)
-	@#gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
 
 .check-mode:
 	@if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; fi
+
 
 # final build
 $(TARGET_EXEC): $(OBJS)
@@ -54,15 +57,20 @@ $(BUILD_DIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-run: build
+
+
+run: debug
 	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
 
+
 test: build
-	@./tests/test.sh $(realpath $(TARGET_EXEC) $(TESTS_DIR))
+	@(cd $(TESTS_DIR) ; ./test.sh $(realpath $(TARGET_EXEC)))
+
 
 clean:
 	if test -d $(BUILD_DIR); then rm -r $(BUILD_DIR); fi
 	if test -e $(TARGET_EXEC); then rm $(TARGET_EXEC); fi
+
 
 help:
 	@echo available targets:
