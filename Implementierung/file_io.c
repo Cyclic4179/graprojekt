@@ -151,6 +151,25 @@ struct ELLPACK elpk_read_validate(FILE* file) {
     return result;
 }
 
+/// @brief get string from float without trailing zeros and without scientific notation
+char* ftostring(float f) {
+#define BUFSIZE 256
+    char* num = abortIfNULL(malloc(sizeof(char) * BUFSIZE));
+    int i = snprintf(num, BUFSIZE, "%f", f);
+#undef BUFSIZE
+    for (int j = i-1; j >= 0; j--) {
+        if (num[j] != '0') {
+            if (num[j] == '.') {
+                num[j] = 0;
+            } else {
+                num[j+1] = 0;
+            }
+            break;
+        }
+    }
+    return num;
+}
+
 /// @brief writes the matrix to the file
 /// @param matrix matrix to convert
 /// @param result pointer to file
@@ -176,10 +195,14 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
             }
 
             if (first) {
-                fprintf(file, "%f", matrix.values[index++]);
+                // should print the same except for scientific notation
+                fprintf(file, "%s", ftostring(matrix.values[index++]));
+                //fprintf(file, "%g", matrix.values[index++]);
                 first = false;
             } else {
-                fprintf(file, ",%f", matrix.values[index++]);
+                // should print the same except for scientific notation
+                fprintf(file, ",%s", ftostring(matrix.values[index++]));
+                //fprintf(file, ",%g", matrix.values[index++]);
             }
         }
     }
