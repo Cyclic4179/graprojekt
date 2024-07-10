@@ -34,7 +34,7 @@ DEBUG_MODE := debug
 build: CFLAGS += $(CRELEASEFLAGS)
 build: MODE := $(RELEASE_MODE)
 build: .check-mode $(TARGET_EXEC)
-	echo $(RELEASE_MODE) > $(MODE_FILE)
+	@echo $(RELEASE_MODE) > $(MODE_FILE)
 
 #run: build
 #	./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt
@@ -42,11 +42,11 @@ build: .check-mode $(TARGET_EXEC)
 debug: CFLAGS += $(CDEBUGFLAGS)
 debug: MODE := $(DEBUG_MODE)
 debug: .check-mode $(TARGET_EXEC)
-	echo $(DEBUG_MODE) > $(MODE_FILE)
+	@echo $(DEBUG_MODE) > $(MODE_FILE)
 	@#gdb --args ./$(TARGET_EXEC) -a $(INPUT_DIR)/1.txt -b $(INPUT_DIR)/2.txt -o /dev/null
 
 .check-mode:
-	if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; fi
+	@if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; fi
 
 # final build
 $(TARGET_EXEC): $(OBJS)
@@ -58,32 +58,7 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test: build
-	@for i in $(shell ls $(TESTS_DIR)); do \
-		got=$$(./$(TARGET_EXEC) -a $(TESTS_DIR)/$$i/a -b $(TESTS_DIR)/$$i/b 2>/dev/null); \
-		expected=$$(cat $(TESTS_DIR)/$$i/res); \
-		if [[ "$$got" = "$$expected" ]] then { \
-			echo ---------------------; \
-			echo PASSED: testcase $$i; \
-			echo ; \
-		} else { \
-			echo ; \
-			echo ---------------------; \
-			echo FAILED: testcase $$i; \
-			echo ; \
-			echo factor a:; \
-			echo $$(cat $(TESTS_DIR)/$$i/a); \
-			echo ; \
-			echo factor b:; \
-			echo $$(cat $(TESTS_DIR)/$$i/b); \
-			echo ; \
-			echo expected result:; \
-			echo $$expected; \
-			echo ; \
-			echo but got:; \
-			echo $$got; \
-			false; \
-		}; fi \
-	done && echo SUCCESS || exit 0
+	@./tests/test.sh $(realpath $(TARGET_EXEC) $(TESTS_DIR))
 
 clean:
 	if test -d $(BUILD_DIR); then rm -r $(BUILD_DIR); fi
