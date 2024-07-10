@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+
+import os
+from random import randint, uniform
+
+MIN = 0
+MAX = pow(2, 64) - 1
+
+DIR = os.path.join(os.path.dirname(__file__), "generated")
+
+
+class InputGenerator:
+    def __init__(self):
+        pass
+
+    def empty(self, sparsity: int) -> bool:
+        """Randomly decides whether a value should remain empty
+
+        Args:
+            sparsity (int): Every sparsity. value remains empty
+
+        Returns:
+            bool: should the value remain empty
+        """
+
+        return not randint(0, sparsity)
+
+    def value(self, max: int, floats: bool) -> float | int:
+        """Randomly generates a value
+
+        Args:
+            max (int): highest possible value
+            floats (bool): should floats be returned
+
+        Returns:
+            float | int: generated value
+        """
+
+        if floats:
+            return uniform(MIN, max)
+        else:
+            return randint(MIN, max)
+
+    def index(self, max: int, min: int) -> int:
+        """Randomly generates a index
+
+        Args:
+            max (int): highest possible index
+            min (int): smallest possible index
+
+        Returns:
+            int: generated index
+        """
+
+        return randint(min, max)
+
+    def create(
+        self,
+        folder: str,
+        a: bool,
+        noRows: int,
+        noCols: int,
+        noNonZero: int,
+        max: int,
+        sparsity: int,
+        floats: bool,
+    ):
+        """Creates a random sparse matrix
+
+        Args:
+            folder (str): Folder to generate into
+            a (bool): True to generate a, False to generate b
+            noRows (int): number of rows
+            noCols (int): number of columns
+            noNonZero (int): maximal number of non zero values per row
+            max (int): highest possible value
+            sparsity (int): Every sparsity. value remains empty
+            floats (bool): should floats be used as values
+        """
+
+        itemsCount: int = noRows * noNonZero
+
+        dir = os.path.join(DIR, folder)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        f = open(os.path.join(dir, "a" if a else "b"), "w")
+
+        # ------------------------------ LINE 1 ------------------------------ #
+
+        f.write(f"{noRows},{noCols},{noNonZero}\n")
+
+        # ------------------------------ LINE 2 ------------------------------ #
+
+        emptyLine2 = []
+
+        for i in range(itemsCount - 1):
+            if (i % noNonZero == noNonZero - 1) and (self.empty(sparsity)):
+                f.write("*,")
+                emptyLine2.append(True)
+            else:
+                f.write(f"{self.value(max, floats)},")
+                emptyLine2.append(False)
+
+        f.write(f"{self.value(max, floats)}\n")
+        emptyLine2.append(False)
+
+        # ------------------------------ LINE 3 ------------------------------ #
+
+        previous: int = 0
+        for i in range(itemsCount - 1):
+            if emptyLine2[i]:
+                f.write("*,")
+                previous = 0
+            else:
+                noRowsAfter = noNonZero - (i % noNonZero) - 1
+                val = self.index(noCols - noRowsAfter, previous + 1)
+                f.write(f"{val},")
+                previous = 0 if noRowsAfter == 0 else val
+
+        f.write(f"{self.index(noCols,previous + 1)}\n")
+
+        f.close()
+
+
+if __name__ == "__main__":
+    ig = InputGenerator()
+
+    ig.create("1", True, 4, 4, 2, 99, 3, False)
+    ig.create("1", False, 4, 4, 2, 99, 3, False)
+
+    ig.create("2", True, 9, 9, 4, 99, 3, False)
+    ig.create("2", False, 9, 9, 4, 99, 3, False)
+
+    ig.create("3", True, 9, 9, 4, MAX, 3, False)
+    ig.create("3", False, 9, 9, 4, MAX, 3, False)
+
+    ig.create("4", True, 4, 4, 2, 99, 3, True)
+    ig.create("4", False, 4, 4, 2, 99, 3, True)
+
+    ig.create("5", True, 9, 9, 4, 99, 3, True)
+    ig.create("5", False, 9, 9, 4, 99, 3, True)
+
+    ig.create("6", True, 9, 9, 4, MAX, 3, True)
+    ig.create("6", False, 9, 9, 4, MAX, 3, True)

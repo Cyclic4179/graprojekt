@@ -5,6 +5,8 @@
 sample-output/
 build/
 main
+**/generated/*
+!**/generated/.gitkeep
 
 #
 # clion
