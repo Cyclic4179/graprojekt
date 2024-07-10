@@ -91,11 +91,10 @@ clean:
 
 help:
 	@echo available targets:
-	@echo - build \(default target\)
+	@echo - build \(default target, no debug output, performance\)
 	@echo - debug \(debug symbols and extra output when running\)
-	@echo - release \(no debug output, performance\)
 	@echo - test
-	@echo - clean
+	@echo - clean \(remove generate files\)
 	@echo - help \(display this help\)
 
 # vim: noexpandtab
