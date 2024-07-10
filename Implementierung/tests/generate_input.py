@@ -25,11 +25,11 @@ class InputGenerator:
 
         return not randint(0, sparsity)
 
-    def value(self, max: int, floats: bool) -> str:
+    def value(self, maximum: int, floats: bool) -> str:
         """Randomly generates a value
 
         Args:
-            max (int): highest possible value
+            maximum (int): highest possible value
             floats (bool): should floats be returned
 
         Returns:
@@ -37,22 +37,22 @@ class InputGenerator:
         """
 
         if floats:
-            return "{0:.10f}".format(uniform(MIN, max))
+            return "{0:.10f}".format(uniform(MIN, maximum))
         else:
-            return f"{randint(MIN, max)}"
+            return f"{randint(MIN, maximum)}"
 
-    def index(self, max: int, min: int) -> int:
+    def index(self, maximum: int, minimum: int) -> int:
         """Randomly generates a index
 
         Args:
-            max (int): highest possible index
-            min (int): smallest possible index
+            maximum (int): highest possible index
+            minimum (int): smallest possible index
 
         Returns:
             int: generated index
         """
 
-        return randint(min, max)
+        return randint(minimum, maximum)
 
     def create(
         self,
@@ -80,47 +80,45 @@ class InputGenerator:
 
         itemsCount: int = noRows * noNonZero
 
-        dir = os.path.join(DIR, folder)
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        directory = os.path.join(DIR, folder)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-        f = open(os.path.join(dir, "a" if a else "b"), "w")
+        with open(os.path.join(directory, "a" if a else "b"), "w") as f:
 
-        # ------------------------------ LINE 1 ------------------------------ #
+            # ---------------------------- LINE 1 ---------------------------- #
 
-        f.write(f"{noRows},{noCols},{noNonZero}\n")
+            f.write(f"{noRows},{noCols},{noNonZero}\n")
 
-        # ------------------------------ LINE 2 ------------------------------ #
+            # ---------------------------- LINE 2 ---------------------------- #
 
-        emptyLine2 = []
+            emptyLine2 = []
 
-        for i in range(itemsCount - 1):
-            if (i % noNonZero == noNonZero - 1) and (self.empty(sparsity)):
-                f.write("*,")
-                emptyLine2.append(True)
-            else:
-                f.write(f"{self.value(max, floats)},")
-                emptyLine2.append(False)
+            for i in range(itemsCount - 1):
+                if (i % noNonZero == noNonZero - 1) and (self.empty(sparsity)):
+                    f.write("*,")
+                    emptyLine2.append(True)
+                else:
+                    f.write(f"{self.value(max, floats)},")
+                    emptyLine2.append(False)
 
-        f.write(f"{self.value(max, floats)}\n")
-        emptyLine2.append(False)
+            f.write(f"{self.value(max, floats)}\n")
+            emptyLine2.append(False)
 
-        # ------------------------------ LINE 3 ------------------------------ #
+            # ---------------------------- LINE 3 ---------------------------- #
 
-        previous: int = 0
-        for i in range(itemsCount - 1):
-            if emptyLine2[i]:
-                f.write("*,")
-                previous = 0
-            else:
-                noRowsAfter = noNonZero - (i % noNonZero) - 1
-                val = self.index(noCols - noRowsAfter, previous + 1)
-                f.write(f"{val},")
-                previous = 0 if noRowsAfter == 0 else val
+            previous: int = 0
+            for i in range(itemsCount - 1):
+                if emptyLine2[i]:
+                    f.write("*,")
+                    previous = 0
+                else:
+                    noRowsAfter = noNonZero - (i % noNonZero) - 1
+                    val = self.index(noCols - noRowsAfter, previous + 1)
+                    f.write(f"{val},")
+                    previous = 0 if noRowsAfter == 0 else val
 
-        f.write(f"{self.index(noCols,previous + 1)}\n")
-
-        f.close()
+            f.write(f"{self.index(noCols,previous + 1)}\n")
 
 
 if __name__ == "__main__":
