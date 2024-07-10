@@ -111,7 +111,7 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
 struct ELLPACK elpk_read_validate(FILE* file) {
     char* string = NULL;
     size_t len = 0;
-    struct ELLPACK result = {};
+    struct ELLPACK result;
     long pos = 0;
 
     abortIfNULL((void*) (getline(&string, &len, file) + 1));
