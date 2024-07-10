@@ -3,6 +3,7 @@
 #
 
 sample-output/
+build/
 main
 
 #
