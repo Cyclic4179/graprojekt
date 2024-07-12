@@ -157,7 +157,7 @@ struct ELLPACK elpk_read_validate(FILE* file) {
 /// @param s writable string
 /// @param f float value to convert
 void ftostr(size_t n, char s[n], float f) {
-    int i = snprintf(s, n, "%f", f);
+    int i = snprintf(s, n, "%.6f", f);
     for (int j = i-1; j >= 0; j--) {
         if (s[j] != '0') {
             if (s[j] == '.') {
@@ -186,7 +186,14 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     // print values
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-            if (matrix.values[index] == 0.) {
+            if (matrix.values[index] < 0.000001) {
+#ifdef DEBUG
+                if (matrix.values[index] != 0) {
+                    pdebug("elpk_write: detected value not null but smaller"
+                           " than 0.000001 at index %lu: %.*f\n",
+                           index, 50, matrix.values[index]);
+                }
+#endif
                 if (first) {
                     fputs("*", file);
                     first = false;
@@ -214,7 +221,7 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     // print indices
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-            if (matrix.values[index] == 0.) {
+            if (matrix.values[index] < 0.000001) {
                 if (first) {
                     fputs("\n*", file);
                     first = false;

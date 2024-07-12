@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -7,8 +8,17 @@
 #include "util.h"
 #include "parseargs.h"
 
+
 int main(int argc, char** argv) {
     struct ARGS args = parse_args(argc, argv);
+
+    pdebug("parsed args:\n");
+    pdebug("\ta: '%s'\n", args.a);
+    pdebug("\tb: '%s'\n", args.b);
+    pdebug("\tout: '%s'\n", args.out);
+    pdebug("\timpl_version: '%d'\n", args.impl_version);
+    pdebug("\ttimeit: '%s'\n", args.timeit ? "true" : "false");
+    pdebug("\titerations: '%d'\n", args.iterations);
 
     void (*matr_mult_ellpack_ptr)(const void*, const void*, void*);
 

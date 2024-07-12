@@ -9,7 +9,7 @@ CC := gcc
 # -D_POSIX_C_SOURCE=199309L
 #					Include libs to use clock_gettime(CLOCK_MONOTONIC, ...);
 CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17
-CDEBUGFLAGS := -g -O0 -DDEBUG
+CDEBUGFLAGS := -g -Og -DDEBUG
 CRELEASEFLAGS := -O2
 
 
