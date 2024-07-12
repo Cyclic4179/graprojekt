@@ -176,12 +176,14 @@ void ftostr(size_t n, char s[n], float f) {
 void elpk_write(struct ELLPACK matrix, FILE* file) {
     uint64_t index, i, j;
 
+    // first line info
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
 
     index = 0;
-    bool first = true;
-    char s[256];
+    bool first = true; // just a helper bool to not print ',' at start; not that nice ik but whatever
+    char s[256]; // buffer for storing a single float in nice format
 
+    // print values
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
             if (matrix.values[index] == 0.) {
@@ -205,9 +207,11 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
         }
     }
 
+    // reset
     index = 0;
     first = true;
 
+    // print indices
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
             if (matrix.values[index] == 0.) {
