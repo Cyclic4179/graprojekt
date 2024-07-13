@@ -32,18 +32,29 @@ int main(int argc, char** argv) {
 
     if (args.a != NULL) {
         file_a = abortIfNULL(fopen(args.a, "r"));
+        pdebug("reading file a: '%s'\n", args.a);
     } else {
         file_a = stdin;
+        pdebug("reading a from stdin\n");
     }
+    const struct ELLPACK a_lpk = elpk_read_validate(file_a);
+    pdebug("done:\n");
+#ifdef DEBUG
+    elpk_write(a_lpk, stderr);
+#endif
 
     if (args.b != NULL) {
         file_b = abortIfNULL(fopen(args.b, "r"));
+        pdebug("start reading file b: '%s'\n", args.b);
     } else {
         file_b = stdin;
+        pdebug("reading b from stdin\n");
     }
-
-    const struct ELLPACK a_lpk = elpk_read_validate(file_a);
     const struct ELLPACK b_lpk = elpk_read_validate(file_b);
+    pdebug("done:\n");
+#ifdef DEBUG
+    elpk_write(b_lpk, stderr);
+#endif
 
     if (args.a != NULL) fclose(file_a);
     if (args.b != NULL) fclose(file_b);
