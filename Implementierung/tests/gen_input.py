@@ -14,7 +14,7 @@ gen_dir = Path(sys.argv[1])
 
 
 def maybe_true(prop: int) -> bool:
-    """Returns maybe zero with `1/prop` propability
+    """Returns maybe zero with `1/prop` probability
 
     Args:
         prop (int): must be >0

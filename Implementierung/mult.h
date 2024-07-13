@@ -32,4 +32,14 @@ struct ELLPACK remove_unnecessary_padding(struct ELLPACK result);
 /// @param result result matrix
 void debug_info(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result);
 
+/// @brief output debug information
+/// @param c name of matrix: 'l' -> "left"; 'r' -> "right"; 'o' -> "result"; everything else -> "matrix"
+/// @param matrix matrix to output
+void debug_info_single(char c, struct ELLPACK matrix);
+
+/// @brief check for valid inputs: multiplicable dimensions, no indices larger than matrix dimensions
+/// @param left left matrix
+/// @param right right matrix
+void validate_inputs(struct ELLPACK left, struct ELLPACK right);
+void validate_matrix(struct ELLPACK matrix);
 #endif

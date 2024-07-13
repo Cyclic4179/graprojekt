@@ -125,8 +125,8 @@ class InputGenerator:
 def default():
     ig = InputGenerator()
 
-    ig.create("1", True, 4, 4, 2, 99, 3, False)
-    ig.create("1", False, 4, 4, 2, 99, 3, False)
+    ig.create("1", True, 6, 4, 4, 99, 3, False)
+    ig.create("1", False, 4, 5, 3, 99, 3, False)
 
     ig.create("2", True, 9, 9, 4, 99, 3, False)
     ig.create("2", False, 9, 9, 4, 99, 3, False)
