@@ -108,18 +108,18 @@ class InputGenerator:
 
             # ---------------------------- LINE 3 ---------------------------- #
 
-            previous: int = 0
+            previous: int = -1
             for i in range(itemsCount - 1):
                 if emptyLine2[i]:
                     f.write("*,")
-                    previous = 0
+                    previous = -1
                 else:
                     noRowsAfter = noNonZero - (i % noNonZero) - 1
-                    val = self.index(noCols - noRowsAfter, previous + 1)
+                    val = self.index(noCols - noRowsAfter - 1, previous + 1)
                     f.write(f"{val},")
-                    previous = 0 if noRowsAfter == 0 else val
+                    previous = -1 if noRowsAfter == 0 else val
 
-            f.write(f"{self.index(noCols,previous + 1)}\n")
+            f.write(f"{self.index(noCols - 1, previous + 1)}\n")
 
 
 def default():
