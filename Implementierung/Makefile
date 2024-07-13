@@ -9,8 +9,9 @@ CC := gcc
 # -D_POSIX_C_SOURCE=199309L
 #					Include libs to use clock_gettime(CLOCK_MONOTONIC, ...);
 CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17
-CDEBUGFLAGS := -g -Og -DDEBUG
 CRELEASEFLAGS := -O2
+CDEBUGFLAGS := -g -Og -DDEBUG
+CSANITIZEFLAGS := $(CDEBUGFLAGS) -fsanitize=address -fsanitize=undefined -fsanitize-address-use-after-scope
 
 
 TARGET_EXEC := main
@@ -28,29 +29,32 @@ MODE_FILE := $(BUILD_DIR)/.last-mode
 LAST_MODE := $(shell [ -f $(MODE_FILE) ] && cat $(MODE_FILE) || echo none)
 RELEASE_MODE := release
 DEBUG_MODE := debug
+SANITIZE_MODE := sanitize
 
 
-.PHONY: build debug run test clean help
+.PHONY: build debug sanitize run test clean help .check-mode
 
 
 build: CFLAGS += $(CRELEASEFLAGS)
 build: MODE := $(RELEASE_MODE)
 build: .check-mode $(TARGET_EXEC)
-	@echo $(RELEASE_MODE) > $(MODE_FILE)
-
 
 debug: CFLAGS += $(CDEBUGFLAGS)
 debug: MODE := $(DEBUG_MODE)
 debug: .check-mode $(TARGET_EXEC)
-	@echo $(DEBUG_MODE) > $(MODE_FILE)
+
+sanitize: CFLAGS += $(CSANITIZEFLAGS)
+sanitize: MODE := $(SANITIZE_MODE)
+sanitize: .check-mode $(TARGET_EXEC)
+
 
 .check-mode:
-	@if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; fi
+	@if test $(LAST_MODE) != $(MODE); then $(MAKE) clean; mkdir -p $(BUILD_DIR); echo $(MODE) > $(MODE_FILE); fi
 
 
 # final build
 $(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(OBJS) -o $@
 
 # build steps
 $(BUILD_DIR)/%.c.o: %.c
@@ -76,6 +80,7 @@ help:
 	@echo available targets:
 	@echo - build \(default target, no debug output, performance\)
 	@echo - debug \(debug symbols and extra output when running\)
+	@echo - sanitize \(same as debug, but also include sanitizers\)
 	@echo - test
 	@echo - clean \(remove generate files\)
 	@echo - help \(display this help\)
