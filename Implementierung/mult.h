@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <xmmintrin.h>
 
 
-#define MAX_IMPL_VERSION 1
+#define MAX_IMPL_VERSION 2
 
 /// @brief main function
 /// @param a matrix a
@@ -14,6 +15,7 @@
 /// @param result result of multiplication
 void matr_mult_ellpack(const void* a, const void* b, void* result);
 void matr_mult_ellpack_V1(const void* a, const void* b, void* result);
+void matr_mult_ellpack_V2(const void* a, const void* b, void* result);
 
 /// @brief initialize the result matrix, check for multiplicable dimensions
 /// @param left left matrix

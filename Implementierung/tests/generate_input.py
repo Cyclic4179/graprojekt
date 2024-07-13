@@ -128,17 +128,17 @@ def default():
     ig.create("1", True, 6, 4, 4, 99, 3, False)
     ig.create("1", False, 4, 5, 3, 99, 3, False)
 
-    ig.create("2", True, 9, 9, 4, 99, 3, False)
-    ig.create("2", False, 9, 9, 4, 99, 3, False)
+    ig.create("2", True, 100, 100, 85, 99, 3, False)
+    ig.create("2", False, 100, 100, 80, 99, 3, False)
 
-    ig.create("3", True, 9, 9, 4, MAX, 3, False)
-    ig.create("3", False, 9, 9, 4, MAX, 3, False)
+    ig.create("3", True, 300, 200, 150, MAX, 3, False)
+    ig.create("3", False, 200, 250, 150, MAX, 3, False)
 
-    ig.create("4", True, 4, 4, 2, 99, 3, True)
-    ig.create("4", False, 4, 4, 2, 99, 3, True)
+    ig.create("4", True, 20, 2000, 1800, 99, 3, True)
+    ig.create("4", False, 2000, 20, 15, 99, 3, True)
 
-    ig.create("5", True, 9, 9, 4, 99, 3, True)
-    ig.create("5", False, 9, 9, 4, 99, 3, True)
+    ig.create("5", True, 500, 500, 300, 99, 3, True)
+    ig.create("5", False, 500, 500, 400, 99, 3, True)
 
     ig.create("6", True, 9, 9, 4, MAX, 3, True)
     ig.create("6", False, 9, 9, 4, MAX, 3, True)
