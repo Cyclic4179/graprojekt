@@ -44,4 +44,7 @@ void debug_info_single(char c, struct ELLPACK matrix);
 /// @param right right matrix
 void validate_inputs(struct ELLPACK left, struct ELLPACK right);
 void validate_matrix(struct ELLPACK matrix);
+
+/// @brief transposes the given matrix and returns the result
+struct ELLPACK transpose(struct ELLPACK matrix);
 #endif
