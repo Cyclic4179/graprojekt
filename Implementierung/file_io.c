@@ -157,7 +157,7 @@ struct ELLPACK elpk_read_validate(FILE* file) {
 /// @param s writable string
 /// @param f float value to convert
 void ftostr(size_t n, char s[n], float f) {
-    int i = snprintf(s, n, "%.6f", f);
+    int i = snprintf(s, n, "%.50f", f);
     for (int j = i-1; j >= 0; j--) {
         if (s[j] != '0') {
             if (s[j] == '.') {
@@ -175,6 +175,7 @@ void ftostr(size_t n, char s[n], float f) {
 /// @param result pointer to file
 void elpk_write(struct ELLPACK matrix, FILE* file) {
     uint64_t index, i, j;
+    float val, absval;
 
     // first line info
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
@@ -186,10 +187,13 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     // print values
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-            if (matrix.values[index] < 0.000001) {
+            val = matrix.values[index];
+            absval = val > 0 ? val : -val;
+            if (absval < 0.000001) {
 #ifdef DEBUG
-                if (matrix.values[index] != 0) {
-                    pdebug("elpk_write: detected value not null but smaller"
+                if (val != 0) {
+                    fputs("\n", stderr);
+                    pdebug("elpk_write: detected value not eq 0 but smaller"
                            " than 0.000001 at index %lu: %.*f\n",
                            index, 50, matrix.values[index]);
                 }
@@ -200,16 +204,23 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 } else {
                     fputs(",*", file);
                 }
-                index++;
-                break;
-            }
 
-            ftostr(sizeof(s), s, matrix.values[index++]);
-            if (first) {
-                fprintf(file, "%s", s);
-                first = false;
+                index++;
+
+                //for (j++; j < matrix.maxNoNonZero; j++) {
+                //    index++;
+                //    fputs(",*", file);
+                //}
+                //break;
             } else {
-                fprintf(file, ",%s", s);
+
+                ftostr(sizeof(s), s, matrix.values[index++]);
+                if (first) {
+                    fprintf(file, "%s", s);
+                    first = false;
+                } else {
+                    fprintf(file, ",%s", s);
+                }
             }
         }
     }
@@ -221,18 +232,27 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     // print indices
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-            if (matrix.values[index] < 0.000001) {
+            val = matrix.values[index];
+            absval = val > 0 ? val : -val;
+            if (absval < 0.000001) {
                 if (first) {
                     fputs("\n*", file);
                     first = false;
                 } else {
                     fputs(",*", file);
                 }
-                index++;
-                break;
-            }
 
-            if (first) {
+                //index += matrix.maxNoNonZero - j;
+                //pdebug("next index, value: %d, %.50f\n", )
+                index++;
+
+                //for (; j < matrix.maxNoNonZero; j++) {
+                //    index++;
+                //    fputs(",*", file);
+                //}
+                //break;
+            } else if (first) {
+
                 fprintf(file, "\n%lu", matrix.indices[index++]);
                 first = false;
             } else {
@@ -242,6 +262,8 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     }
 
     fputs("\n", file);
+
+    fseek(file, 0, SEEK_SET);
 }
 
 // /// @brief helper: read a file to a pointer
