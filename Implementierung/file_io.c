@@ -1,6 +1,7 @@
 #include "file_io.h"
 #include "util.h"
 #include "ellpack.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -162,7 +163,7 @@ struct ELLPACK elpk_read_validate(FILE* file) {
 /// @param s writable string
 /// @param f float value to convert
 void ftostr(size_t n, char s[n], float f) {
-    int i = snprintf(s, n, "%.50f", f);
+    int i = snprintf(s, n, "%.15f", f);
     for (int j = i-1; j >= 0; j--) {
         if (s[j] != '0') {
             if (s[j] == '.') {
@@ -194,7 +195,7 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
 
             val = matrix.values[index];
-            absval = val > 0 ? val : -val;
+            absval = fabsf(val);
 
             if (absval < 0.000001) {
 
@@ -230,6 +231,8 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
         }
     }
 
+    fputs("\n", file);
+
     // reset
     index = 0;
     first = true;
@@ -243,14 +246,14 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
 
             if (absval < 0.000001) {
                 if (first) {
-                    fputs("\n*", file);
+                    fputs("*", file);
                     first = false;
                 } else {
                     fputs(",*", file);
                 }
 
             } else if (first) {
-                fprintf(file, "\n%lu", matrix.indices[index]);
+                fprintf(file, "%lu", matrix.indices[index]);
                 first = false;
 
             } else {

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <xmmintrin.h>
 
+#define ELLPACK_ROUGHLY_EQ_DIFF 1
+
 struct ELLPACK {
     uint64_t noRows;
     uint64_t noCols;

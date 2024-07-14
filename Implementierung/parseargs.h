@@ -11,6 +11,7 @@ struct ARGS {
     int impl_version;
     bool timeit;
     int iterations;
+    bool check_equal;
 };
 
 

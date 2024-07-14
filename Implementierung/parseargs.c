@@ -12,7 +12,7 @@
 
 
 const char* usage_msg =
-    "Usage: %s [options]\n";
+    "Usage: %s [options] [-]\n";
 
 const char* help_msg =
     "\n"
@@ -23,6 +23,8 @@ const char* help_msg =
     "    -V N        impl number (integer between 0 and %d, default: 0)\n"
     "    -B\n"
     "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
+    "    -e          parse files and print true if they are roughly equal (diff of entries < %d)\n"
+    "    -x          print max impl version to stdout and exit\n"
     "    -h, --help  Show help and exit\n"
     "\n"
     "Examples:\n"
@@ -37,7 +39,7 @@ void print_usage(const char* pname) {
 
 void print_help(const char* pname) {
     print_usage(pname);
-    fprintf(stderr, help_msg, MAX_IMPL_VERSION, pname, pname, pname, pname);
+    fprintf(stderr, help_msg, MAX_IMPL_VERSION, ELLPACK_ROUGHLY_EQ_DIFF, pname, pname, pname, pname);
 }
 
 int parse_int(char opt, const char* pname) {
@@ -74,13 +76,14 @@ struct ARGS parse_args(int argc, char** argv) {
     parsed_args.impl_version = 0;
     parsed_args.timeit = false;
     parsed_args.iterations = 1;
+    parsed_args.check_equal = false;
 
     static struct option long_opts[] = {
         {"help",    no_argument,    NULL,   'h'},
         {0, 0, 0, 0} // required (man 3 getopt_long)
     };
 
-    while ((opt = getopt_long(argc, argv, "V:B::a:b:o:h", long_opts, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "V:B::a:b:o:hex", long_opts, NULL)) != -1) {
         switch (opt) {
             case 'V':
                 parsed_args.impl_version = parse_int('B', pname);
@@ -110,6 +113,12 @@ struct ARGS parse_args(int argc, char** argv) {
             case 'o':
                 parsed_args.out = optarg;
                 break;
+            case 'e':
+                parsed_args.check_equal = true;
+                break;
+            case 'x':
+                printf("%d\n", MAX_IMPL_VERSION);
+                exit(0);
             case 'h':
                 print_help(pname);
                 exit(EXIT_SUCCESS);

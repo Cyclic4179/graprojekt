@@ -1,4 +1,7 @@
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -19,6 +22,7 @@ int main(int argc, char** argv) {
     pdebug("\timpl_version: '%d'\n", args.impl_version);
     pdebug("\ttimeit: '%s'\n", args.timeit ? "true" : "false");
     pdebug("\titerations: '%d'\n", args.iterations);
+    pdebug("\tcheck_equal: '%d'\n", args.check_equal);
 
     void (*matr_mult_ellpack_ptr)(const void*, const void*, void*);
 
@@ -67,26 +71,33 @@ int main(int argc, char** argv) {
     if (args.a != NULL) fclose(file_a);
     if (args.b != NULL) fclose(file_b);
 
-    /*FILE* file_a = (fopen(a, "r")); // alternative from Simon for debugging
-    FILE* file_b = (fopen(b, "r"));
-    if (file_a == NULL || file_b == NULL) {
-        abort();
-    }*/
+    if (args.check_equal) {
+        pdebug("checking if equal\n");
+        if (a_lpk.noCols != b_lpk.noCols ||
+                a_lpk.noRows != b_lpk.noRows ||
+                a_lpk.maxNoNonZero != b_lpk.maxNoNonZero) {
+            puts("dimensions dont match");
+            exit(EXIT_FAILURE);
+        }
+        for (uint64_t i = 0; i < a_lpk.noRows * a_lpk.maxNoNonZero; i++) {
+            float absdiff = fabsf(a_lpk.values[i] - b_lpk.values[i]);
+
+            if (absdiff >= ELLPACK_ROUGHLY_EQ_DIFF || a_lpk.indices[i] != b_lpk.indices[i]) {
+                printf("values or index at entry '%lu' dont match: (%.50f; %lu) vs (%.50f; %lu) \n",
+                        i, a_lpk.values[i], a_lpk.indices[i], b_lpk.values[i], b_lpk.indices[i]);
+                exit(EXIT_FAILURE);
+            }
+        }
+        puts("equal");
+        exit(EXIT_SUCCESS);
+    }
 
     struct ELLPACK res_lpk;
-
-//#ifdef DEBUG
-//    pdebug("parsed a:");
-//    elpk_write(a_lpk, stderr);
-//    pdebug("parsed b:");
-//    elpk_write(b_lpk, stderr);
-//#endif
 
     if (args.timeit) {
 #ifdef DEBUG
         fputs("WARNING:  compiled with debug output\n", stdout);
 #endif
-
         struct timespec start, end;
         double elapsed_time;
 
@@ -115,10 +126,6 @@ int main(int argc, char** argv) {
             file_out = stdout;
         }
 
-        /*FILE* file_out = fopen(out, "w"); // alternative from Simon for debugging
-          if (file_out == NULL) {
-          abort();
-          }*/
         pdebug("writing result\n");
         elpk_write(res_lpk, file_out);
         fclose(file_out);
