@@ -6,14 +6,11 @@ import pandas as pd
 from matplotlib.colors import ListedColormap
 
 
-if len(sys.argv) > 1:
-    file = sys.argv[1]
-else:
-    file = sys.stdin.readline()
+file = sys.argv[1]
 
 
 def main():
-    df = pd.read_csv("data.csv")
+    df = pd.read_csv(file)
     print(df)
 
     cmap = ListedColormap(['#0343df', '#e50000', '#ffff14', '#929591'])

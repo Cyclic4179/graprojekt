@@ -2,29 +2,31 @@
 #
 # $1: executable
 # $2: test dir
-# $3: iterations
-# $4: max impl version
+# $3: iterations (int)
+# $4: max impl version (int)
 # $5: benchmark result dir
-
-#$executable -a $2 -b $b -B$4 | awk '{print $6}'
 
 
 import sys
-#import json
 import subprocess
 from pathlib import Path
-import datetime
+#import datetime
 import pandas as pd
 
 
-executable = sys.argv[1]
-#filea = sys.argv[2]
-#fileb = sys.argv[3]
-test_dir = sys.argv[2]
-#DEFAULT_ITERATIONS = 5
-#iterations = sys.argv[3] if len(sys.argv) > 2 else DEFAULT_ITERATIONS
-iterations = sys.argv[3]
+if len(sys.argv) == 1:
+    print("usage: see top of skript")
+    print("# $1: executable")
+    print("# $2: test dir")
+    print("# $3: iterations (int)")
+    print("# $4: max impl version (int)")
+    print("# $5: benchmark result dir")
+    sys.exit(0)
 
+
+executable = sys.argv[1]
+test_dir = sys.argv[2]
+iterations = sys.argv[3]
 max_impl_version = int(sys.argv[4])
 benchmark_dir = sys.argv[5]
 
@@ -44,13 +46,14 @@ def exec_bench(a: str, b: str, impl_version: int) -> float:
     result = subprocess.run([executable, "-a", a, "-b", b, f"-V{impl_version}", f"-B{iterations}"],
                             capture_output=True, text=True, check=False)
 
-    eprint("...finished")
-
     try:
         result.check_returncode()
-    except subprocess.CalledProcessError as e:
-        print(f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}", file=sys.stderr)
-        raise e
+    except subprocess.CalledProcessError:
+        eprint("FAILED")
+        eprint(f"stdout: >>>>\n{result.stdout}<<<<\n\nstderr: >>>>\n{result.stderr}<<<<")
+        sys.exit(1)
+
+    eprint("...finished")
 
     return float(result.stdout.split(" ")[5])
 
@@ -66,15 +69,15 @@ def main():
           for p in ls} for v in vs}
 
     sorted_l = dict(sorted(((k, dict(sorted(v.items()))) for k, v in l.items())))
-    #print(json.dumps(sorted_l))
 
     df = pd.DataFrame(sorted_l)
     df.index.name = "tests"
 
     print(df)
 
-    timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    df.to_csv(Path(benchmark_dir, f"{timestr}.csv"))
+    #timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    #df.to_csv(Path(benchmark_dir, f"{timestr}.csv"))
+    df.to_csv(Path(benchmark_dir, "bench.csv"))
 
 if __name__ == "__main__":
     main()

@@ -270,6 +270,11 @@ void validate_matrix(struct ELLPACK matrix) {
 /// @param result result matrix
 /// @result initialized result matrix
 struct ELLPACK initialize_result(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result) {
+    if (left.noCols != right.noRows) {
+        fprintf(stderr, "Error: the given matrices do not have multiplicable "
+                "dimensions: %lux%lu vs %lux%lu\n", left.noRows, left.noCols, right.noRows, right.noCols);
+        exit(EXIT_FAILURE);
+    }
     result.noRows = left.noRows;
     result.noCols = right.noCols;
     result.maxNoNonZero = (right.noCols > left.maxNoNonZero * right.maxNoNonZero) ? left.maxNoNonZero * right.maxNoNonZero : right.noCols; //Proven by Pierre that this limit is correct

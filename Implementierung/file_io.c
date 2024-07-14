@@ -249,15 +249,15 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                     fputs(",*", file);
                 }
 
-                index++;
-
             } else if (first) {
-                fprintf(file, "\n%lu", matrix.indices[index++]);
+                fprintf(file, "\n%lu", matrix.indices[index]);
                 first = false;
 
             } else {
-                fprintf(file, ",%lu", matrix.indices[index++]);
+                fprintf(file, ",%lu", matrix.indices[index]);
             }
+
+            index++;
         }
     }
 

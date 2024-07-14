@@ -26,6 +26,14 @@ int main(int argc, char** argv) {
         case 0:
             matr_mult_ellpack_ptr = matr_mult_ellpack;
             break;
+        case 1:
+            matr_mult_ellpack_ptr = matr_mult_ellpack_V1;
+            break;
+        case 2:
+            matr_mult_ellpack_ptr = matr_mult_ellpack_V2;
+            break;
+        default:
+            abortIfNULL_msg(0, "fixme");
     }
 
     FILE *file_a, *file_b;
@@ -67,7 +75,18 @@ int main(int argc, char** argv) {
 
     struct ELLPACK res_lpk;
 
+//#ifdef DEBUG
+//    pdebug("parsed a:");
+//    elpk_write(a_lpk, stderr);
+//    pdebug("parsed b:");
+//    elpk_write(b_lpk, stderr);
+//#endif
+
     if (args.timeit) {
+#ifdef DEBUG
+        fputs("WARNING:  compiled with debug output\n", stdout);
+#endif
+
         struct timespec start, end;
         double elapsed_time;
 
@@ -85,7 +104,9 @@ int main(int argc, char** argv) {
         printf("Average elapsed time per iteration: %.6f seconds\n", elapsed_time / args.iterations / 1.0e9);
 
     } else {
+        pdebug("starting multiplication\n");
         matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
+        pdebug("finished multiplication\n");
 
         FILE* file_out;
         if (args.out != NULL) {
@@ -98,6 +119,7 @@ int main(int argc, char** argv) {
           if (file_out == NULL) {
           abort();
           }*/
+        pdebug("writing result\n");
         elpk_write(res_lpk, file_out);
         fclose(file_out);
     }

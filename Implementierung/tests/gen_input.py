@@ -4,7 +4,12 @@
 
 import sys
 from pathlib import Path
-from random import randint, uniform
+from random import randint, uniform, sample
+
+
+if len(sys.argv) == 1:
+    print("usage: see top of skript")
+    sys.exit(0)
 
 
 MIN_VAL = 0
@@ -91,7 +96,8 @@ def create(
 
         if i == row_with_max:
             # row will be max
-            for k in range(no_non_zero):
+            indices = range(no_cols)
+            for k in sorted(sample(indices, k=no_non_zero)):
                 s_float += f"{gen_random_value(max_val, use_floats)},"
                 s_index += f"{k},"
             continue
@@ -140,8 +146,8 @@ def main():
     create_a("1", 1, 100, 80, 99, False)
     create_b("1", 100, 4, 2, 99, False)
 
-    #create_a("2", 10000, 10000, 400, 99, False)
-    #create_b("2", 10000, 10000, 200, 99, False)
+    create_a("2", 1000, 1000, 400, 99, False)
+    create_b("2", 1000, 1000, 200, 99, False)
 
     create_a("3", 100, 100, 80, 99, False)
     create_b("3", 100, 100, 80, 99, False)
