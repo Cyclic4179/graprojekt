@@ -9,9 +9,11 @@ CC := gcc
 # -D_POSIX_C_SOURCE=199309L
 #					Include libs to use clock_gettime(CLOCK_MONOTONIC, ...);
 CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17
-CRELEASEFLAGS := -O2
+CRELEASEFLAGS := -O2 -DNDEBUG
 CDEBUGFLAGS := -g -Og -DDEBUG
-CSANITIZEFLAGS := $(CDEBUGFLAGS) -fsanitize=address -fsanitize=undefined -fsanitize-address-use-after-scope
+CSANITIZEFLAGS := $(CDEBUGFLAGS) -fsanitize=address \
+				  -fsanitize=undefined -fsanitize-address-use-after-scope \
+				  -fsanitize=leak -fsanitize-address-use-after-scope
 
 
 TARGET_EXEC := main
@@ -60,7 +62,6 @@ $(TARGET_EXEC): $(OBJS)
 $(BUILD_DIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
-
 
 
 run: debug
