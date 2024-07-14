@@ -26,6 +26,7 @@
               sqlitedict
               numpy
               matplotlib
+              scipy
               pandas
               pandas-stubs
             ]);
