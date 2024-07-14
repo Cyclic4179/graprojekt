@@ -10,17 +10,20 @@
 import sys
 import subprocess
 from pathlib import Path
-#import datetime
+import datetime
 import pandas as pd
 
 
 if len(sys.argv) == 1:
-    print("usage: see top of skript")
-    print("# $1: executable")
-    print("# $2: test dir")
-    print("# $3: iterations (int)")
-    print("# $4: max impl version (int)")
-    print("# $5: benchmark result dir")
+    print("usage:")
+    with open(__file__, "r", encoding="ascii") as f:
+        next(f)
+        next(f)
+        for l in f:
+            l = l.strip()
+            if l == "":
+                break
+            print(f"  - {l.removeprefix('# ')}")
     sys.exit(0)
 
 
@@ -75,9 +78,9 @@ def main():
 
     print(df)
 
-    #timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    #df.to_csv(Path(benchmark_dir, f"{timestr}.csv"))
-    df.to_csv(Path(benchmark_dir, "bench.csv"))
+    timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    df.to_csv(Path(benchmark_dir, f"bench_{timestr}.csv"))
+    #df.to_csv(Path(benchmark_dir, "bench.csv"))
 
 if __name__ == "__main__":
     main()

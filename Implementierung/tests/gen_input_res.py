@@ -3,9 +3,10 @@
 # $1: path for dir to gen into
 # $2: amount of random dirs to create, if omitted, default is executed (int)
 # $3: max dimention, default 1000 (int)
-# $4: min value, default 0 (int)
-# $5: max value, default pow(2, 64) - 1 (int)
-# $6: if set, use floats instead of int (anything)
+# $4: max no_non_zero, default infty (int)
+# $5: min value, default 0 (int)
+# $6: max value, default 1_000_000 (int)
+# $7: if set, use floats instead of int
 
 
 import sys
@@ -16,24 +17,28 @@ from scipy.sparse import lil_matrix, csr_matrix
 
 
 if len(sys.argv) == 1:
-    print("usage: see top of skript")
-    print("$1: path for dir to gen into")
-    print("$2: amount of random dirs to create, if omitted, default is executed (int)")
-    print("$3: max dimention, default 1000 (int)")
-    print("$4: min value, default 0 (int)")
-    print("$5: max value, default pow(2, 64) - 1 (int)")
-    print("$6: if set, use floats instead of int (anything)")
+    print("usage:")
+    with open(__file__, "r", encoding="ascii") as f:
+        next(f)
+        next(f)
+        for l in f:
+            l = l.strip()
+            if l == "":
+                break
+            print(f"  - {l.removeprefix('# ')}")
     sys.exit(0)
 
 
 MIN_DIM = 1
 MAX_DIM = 1000 if len(sys.argv) <= 3 else int(sys.argv[3])
 
-MIN_VAL = 0 if len(sys.argv) <= 4 else int(sys.argv[4])
+MIN_VAL = 0 if len(sys.argv) <= 5 else int(sys.argv[5])
 # MIN_VAL be: pow(2, 64) - 1 ?
-MAX_VAL = pow(10, 12) if len(sys.argv) <= 5 else int(sys.argv[5])
+MAX_VAL = 1_000_000 if len(sys.argv) <= 6 else int(sys.argv[6])
 
-FLOATS = len(sys.argv) > 6
+MAX_NO_NON_ZERO = float("inf") if len(sys.argv) <= 4 else float(sys.argv[4])
+
+FLOATS = len(sys.argv) > 7
 
 gen_dir = Path(sys.argv[1])
 
@@ -45,7 +50,7 @@ def gen_random_value(min_val: int, max_val: int, floats: bool) -> float:
     return float(randint(min_val, max_val))
 
 
-def elpk_str_of_csr_matrix(a: csr_matrix, no_non_zero: int, floats: bool = False) -> str:
+def elpk_str_of_csr_matrix(a: csr_matrix, no_non_zero: int) -> str:
     """ Get ellpack string of csr_matrix """
     if not a.has_sorted_indices:
         a.sort_indices()
@@ -64,10 +69,7 @@ def elpk_str_of_csr_matrix(a: csr_matrix, no_non_zero: int, floats: bool = False
         for j in a.indices[indptr:next_indptr]:
             # j = current column
             data = a.data[data_index]
-            if floats:
-                data_str = ('%.10f' % data).rstrip('0').rstrip('.')
-            else:
-                data_str = str(data)
+            data_str = "{0:.6f}".format(data).rstrip('0').rstrip('.')
 
             s_val += f"{data_str},"
             s_index += f"{j},"
@@ -117,9 +119,7 @@ def create(
     # TODO: maybe some argument to control sparsity
     assert no_non_zero <= m
 
-    a = lil_matrix((n, m), dtype=np.int64)
-    #l_float = []
-    #l_index = []
+    a = lil_matrix((n, m), dtype=np.float32)
 
     # index of row that will have max nonzero entries
     row_with_max = randint(0, n - 1)
@@ -132,11 +132,11 @@ def create(
 
         if i == row_with_max:
             # row will be max
+
             indices = range(m)
             for k in sorted(sample(indices, k=no_non_zero)):
-                a[i, k] = gen_random_value(-max_val, max_val, floats)
-                #l_float.append(str(gen_random_value(max_val, use_floats)))
-                #l_index.append(str(k))
+                a[i, k] = gen_random_value(min_val, max_val, floats)
+
             continue
 
         cur_row = randint(0, m)
@@ -145,41 +145,14 @@ def create(
         # this is one row
         while True:
             if cur_row >= m or j == no_non_zero:
-                #rem_cells = no_non_zero - j
-
-                #if rem_cells > 0:
-                #    s = ["*"] * rem_cells # fill with remaining '*,'
-                #    l_float.extend(s)
-                #    l_index.extend(s)
-
                 break
 
             a[i, cur_row] = gen_random_value(min_val, max_val, floats)
-            #l_float.append(str(gen_random_value(max_val, use_floats)))
-            #l_index.append(str(cur_row))
             j += 1
-
-            #if cur_row == m - 1:
-            #    rem_cells = no_non_zero - j
-
-            #    #if rem_cells > 0:
-            #    #    s = ["*"] * rem_cells # fill with remaining '*,'
-            #    #    l_float.extend(s)
-            #    #    l_index.extend(s)
-
-            #    break
 
             cur_row += randint(1, m - cur_row) # next index
 
     return a.tocsr()
-
-    #s_float = ",".join(l_float)
-    #s_index = ",".join(l_index)
-
-    #with open(str(dest), "w", encoding="ascii") as f:
-    #    f.write(f"{n},{m},{no_non_zero}\n"
-    #            f"{s_float}\n"
-    #            f"{s_index}\n")
 
 
 def xxx(dest: str | Path, *, n: int, k: int, m: int,
@@ -213,9 +186,9 @@ def default():
         no_non_zero_a=80, no_non_zero_b=2,
         max_val_a=1, max_val_b=1)
 
-    xxx("3", n=1000, k=1000, m=1000,
-        no_non_zero_a=400, no_non_zero_b=200,
-        max_val_a=99, max_val_b=99)
+    #xxx("3", n=1000, k=1000, m=1000,
+    #    no_non_zero_a=400, no_non_zero_b=200,
+    #    max_val_a=99, max_val_b=99)
 
     xxx("4", n=100, k=100, m=100,
         no_non_zero_a=80, no_non_zero_b=80,
@@ -225,20 +198,20 @@ def default():
         no_non_zero_a=4, no_non_zero_b=4,
         max_val_a=MAX_VAL, max_val_b=MAX_VAL)
 
-    xxx("6", n=4, k=4, m=4,
-        no_non_zero_a=1, no_non_zero_b=1,
-        max_val_a=99, max_val_b=99,
-        floats=True)
+    #xxx("6", n=4, k=4, m=4,
+    #    no_non_zero_a=1, no_non_zero_b=1,
+    #    max_val_a=99, max_val_b=99,
+    #    floats=True)
 
-    xxx("7", n=9, k=9, m=9,
-        no_non_zero_a=4, no_non_zero_b=4,
-        max_val_a=99, max_val_b=99,
-        floats=True)
+    #xxx("7", n=9, k=9, m=9,
+    #    no_non_zero_a=4, no_non_zero_b=4,
+    #    max_val_a=99, max_val_b=99,
+    #    floats=True)
 
-    xxx("8", n=9, k=9, m=9,
-        no_non_zero_a=4, no_non_zero_b=4,
-        max_val_a=MAX_VAL, max_val_b=MAX_VAL,
-        floats=True)
+    #xxx("8", n=9, k=9, m=9,
+    #    no_non_zero_a=4, no_non_zero_b=4,
+    #    max_val_a=MAX_VAL, max_val_b=MAX_VAL,
+    #    floats=True)
 
     # ./main could not handle
     #xxx("8", n=100_000, k=100_000, m=100_000,
@@ -258,10 +231,10 @@ def main():
         k = randint(MIN_DIM, MAX_DIM)
         m = randint(MIN_DIM, MAX_DIM)
 
-        nonzero_a = randint(0, k)
-        nonzero_b = randint(0, m)
+        nonzero_a = randint(0, min(k, MAX_NO_NON_ZERO))
+        nonzero_b = randint(0, min(m, MAX_NO_NON_ZERO))
 
-        xxx(str(i), n=n, k=k, m=m,
+        xxx(str(i+1), n=n, k=k, m=m,
             no_non_zero_a=nonzero_a, no_non_zero_b=nonzero_b,
             max_val_a=MAX_VAL, max_val_b=MAX_VAL,
             floats=True)

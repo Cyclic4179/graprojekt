@@ -6,6 +6,18 @@ import pandas as pd
 from matplotlib.colors import ListedColormap
 
 
+if len(sys.argv) == 1:
+    print("usage:")
+    with open(__file__, "r", encoding="ascii") as f:
+        next(f)
+        next(f)
+        for l in f:
+            l = l.strip()
+            if l == "":
+                break
+            print(f"  - {l.removeprefix('# ')}")
+    sys.exit(0)
+
 file = sys.argv[1]
 
 
