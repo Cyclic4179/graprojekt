@@ -63,8 +63,8 @@ def create(
     dest = gen_dir.joinpath(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
 
-    s_float = ""
-    s_index = ""
+    l_float = []
+    l_index = []
 
     # index of row that will have max nonzero entries
     row_with_max = randint(0, no_rows - 1)
@@ -79,8 +79,8 @@ def create(
             # row will be max
             indices = range(no_cols)
             for k in sorted(sample(indices, k=no_non_zero)):
-                s_float += f"{gen_random_value(max_val, use_floats)},"
-                s_index += f"{k},"
+                l_float.append(str(gen_random_value(max_val, use_floats)))
+                l_index.append(str(k))
             continue
 
         cur_row = randint(0, no_cols)
@@ -92,30 +92,30 @@ def create(
                 rem_cells = no_non_zero - j
 
                 if rem_cells > 0:
-                    s = "*," * rem_cells # fill with remaining '*,'
-                    s_float += s
-                    s_index += s
+                    s = ["*"] * rem_cells # fill with remaining '*,'
+                    l_float.extend(s)
+                    l_index.extend(s)
 
                 break
 
-            s_float += f"{gen_random_value(max_val, use_floats)},"
-            s_index += f"{cur_row},"
+            l_float.append(str(gen_random_value(max_val, use_floats)))
+            l_index.append(str(cur_row))
             j += 1
 
             if cur_row == no_cols - 1:
                 rem_cells = no_non_zero - j
 
                 if rem_cells > 0:
-                    s = "*," * rem_cells # fill with remaining '*,'
-                    s_float += s
-                    s_index += s
+                    s = ["*"] * rem_cells # fill with remaining '*,'
+                    l_float.extend(s)
+                    l_index.extend(s)
 
                 break
 
             cur_row += randint(1, no_cols - cur_row) # next index
 
-    s_float = s_float[:-1]
-    s_index = s_index[:-1]
+    s_float = ",".join(l_float)
+    s_index = ",".join(l_index)
 
     with open(str(dest), "w", encoding="ascii") as f:
         f.write(f"{no_rows},{no_cols},{no_non_zero}\n"
