@@ -10,12 +10,17 @@ struct ELLPACK {
     uint64_t* indices;
 };
 
-struct ELLPACK_XMM {
+struct DENSE_MATRIX_XMM {
     uint64_t noRows;
     uint64_t noCols;
-    uint64_t maxNoNonZero;
+    uint64_t noQuadCols;
     __m128* values;
-    uint64_t* indices;
+};
+
+struct DENSE_MATRIX {
+    uint64_t noRows;
+    uint64_t noCols;
+    float* values;
 };
 
 __attribute__((always_inline)) inline void free_elpk(struct ELLPACK e) {

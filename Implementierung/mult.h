@@ -5,9 +5,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <xmmintrin.h>
+#include <pmmintrin.h>
 
 
-#define MAX_IMPL_VERSION 2
+#define MAX_IMPL_VERSION 3
 
 /// @brief main function
 /// @param a matrix a
@@ -16,6 +17,8 @@
 void matr_mult_ellpack(const void* a, const void* b, void* result);
 void matr_mult_ellpack_V1(const void* a, const void* b, void* result);
 void matr_mult_ellpack_V2(const void* a, const void* b, void* result);
+void matr_mult_ellpack_V3(const void* a, const void* b, void* result);
+void matr_mult_ellpack_V4(const void* a, const void* b, void* result);
 
 /// @brief initialize the result matrix, check for multiplicable dimensions
 /// @param left left matrix
@@ -47,4 +50,11 @@ void validate_matrix(struct ELLPACK matrix);
 
 /// @brief transposes the given matrix and returns the result
 struct ELLPACK transpose(struct ELLPACK matrix);
+
+/// @brief transforms a sparse matrix of ELLPACK format to a dense matrix and returns it
+struct DENSE_MATRIX to_dense(struct ELLPACK matrix);
+
+/// @brief transforms the values of the given dense matrix into XMM float values
+struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX);
+
 #endif

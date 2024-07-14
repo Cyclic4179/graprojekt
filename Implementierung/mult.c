@@ -146,6 +146,86 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
+void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
+    validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
+    struct ELLPACK result;
+    result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
+    struct DENSE_MATRIX left = to_dense(*(struct ELLPACK*)a);
+    struct DENSE_MATRIX right = to_dense(*(struct ELLPACK*)b);
+    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+
+    //########################################## calculation of actual values ##########################################
+
+    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
+        for (uint64_t j = 0; j < right.noCols; j++) { // Iterates over the columns in the right matrix
+            float sum = 0.f; // accumulator for an entry in result
+
+            for (uint64_t k = 0; k < left.noCols; k++) {
+                sum += left.values[i * left.noCols + k] * right.values[k * right.noCols + j];
+            }
+
+            // set value of result to calculated product
+            if (sum != 0.0) {
+                result.indices[resultPos] = j;
+                result.values[resultPos++] = sum;
+            }
+        }
+        // add padding
+        for (; resultPos < (i + 1) * result.maxNoNonZero; resultPos++) {
+            result.values[resultPos] = 0.f;
+            result.indices[resultPos] = 0;
+        }
+    }
+    *(struct ELLPACK*)res = remove_unnecessary_padding(result);
+}
+
+/// @brief THIS FUNCTIONS MIGHT not be well-defined under c standard -> possibly undefined behaviour, NOT WORKING YET
+/// @param a
+/// @param b
+/// @param res
+void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
+    validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
+    struct ELLPACK result;
+    result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
+    struct DENSE_MATRIX_XMM left = to_XMM(to_dense(*(struct ELLPACK*)a));
+    struct DENSE_MATRIX_XMM right = to_XMM(to_dense(transpose(*(struct ELLPACK*)b)));
+    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+
+    //########################################## calculation of actual values ##########################################
+    pdebug("%lu, %lu, %lu\n", left.noRows, left.noCols, left.noQuadCols);
+    pdebug("%lu, %lu, %lu\n", right.noRows, right.noCols, right.noQuadCols);
+    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
+        for (uint64_t j = 0; j < right.noRows; j++) { // Iterates over the columns in the right matrix
+            __m128 sum = _mm_setzero_ps(); // accumulator for an entry in result
+
+            for (uint64_t k = 0; k < left.noQuadCols; k++) {
+                sum += left.values[i * left.noQuadCols + k] * right.values[j * right.noQuadCols + k];
+            }
+
+            /*sum = _mm_hadd_ps(sum, sum);
+            sum = _mm_hadd_ps(sum, sum);*/
+            float fsum = _mm_cvtss_f32(sum);
+            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
+            fsum += _mm_cvtss_f32(sum);
+            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
+            fsum += _mm_cvtss_f32(sum);
+            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
+            fsum += _mm_cvtss_f32(sum);
+            // set value of result to calculated product
+            if (fsum != 0.0) {
+                result.indices[resultPos] = j;
+                result.values[resultPos++] = fsum;
+            }
+        }
+        // add padding
+        for (; resultPos < (i + 1) * result.maxNoNonZero; resultPos++) {
+            result.values[resultPos] = 0.f;
+            result.indices[resultPos] = 0;
+        }
+    }
+    *(struct ELLPACK*)res = remove_unnecessary_padding(result);
+}
+
 // TODO: free matrices when invalid
 /// @brief check for valid inputs: multiplicable dimensions, no indices larger than matrix dimensions and only ascending indices
 /// @param left left matrix
@@ -298,42 +378,54 @@ struct ELLPACK transpose(struct ELLPACK matrix) {
     }
     return trans;
 }
-// TODO: free memory if malloc failed
-/*struct ELLPACK_XMM toXMMleft(struct ELLPACK matrix) {
-    struct ELLPACK_XMM left;
-    left.noRows = matrix.noRows;
-    left.noCols = matrix.noCols;
-    left.maxNoNonZero = matrix.maxNoNonZero;
-    left.values = (__m128*)malloc(left.noRows * left.maxNoNonZero * sizeof(__m128));
-    left.indices = matrix.indices;
-    if (left.values == NULL) {
+
+/// @brief transforms a sparse matrix of ELLPACK format to a dense matrix and returns it
+struct DENSE_MATRIX to_dense(struct ELLPACK matrix) {
+    struct DENSE_MATRIX result;
+    result.noRows = matrix.noRows;
+    result.noCols = matrix.noCols;
+    result.values = (float*)malloc(result.noRows * result.noCols * sizeof(float));
+    if (result.values == NULL) {
+        fprintf(stderr, "Error allocating memory");
         exit(EXIT_FAILURE);
     }
-    float f;
-    for (uint64_t i = 0; i < left.noRows * left.maxNoNonZero; i++) {
-        f = matrix.values[i];
-        left.values[i] = _mm_set_ps(f, f, f, f);
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        uint64_t matrixPointer = i * matrix.maxNoNonZero;
+        for (uint64_t j = 0; j < result.noCols; j++) {
+            if (matrix.indices[matrixPointer] == j) {
+                result.values[i * result.noCols + j] = matrix.values[matrixPointer++];
+            } else {
+                result.values[i * result.noCols + j] = 0.f;
+            }
+        }
     }
-    return left;
+    return result;
 }
 
-// TODO: free memory if malloc failed
-struct ELLPACK_XMM toXMMright(struct ELLPACK matrix) {
-    struct ELLPACK_XMM right;
-    right.noRows = matrix.noRows;
-    right.noCols = matrix.noCols;
-    right.maxNoNonZero = (matrix.maxNoNonZero + 3) / 4; // (x + 3) >> 2 = (x + 3) / 4= ceil(x/4)
-    right.values = (__m128*) malloc(right.noRows * right.maxNoNonZero * sizeof(__m128));
-    right.indices = matrix.indices;
-    if (right.values == NULL) {
+/// @brief transforms the values of the given dense matrix into XMM float values
+struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
+    struct DENSE_MATRIX_XMM result;
+    result.noRows = matrix.noRows;
+    result.noCols = matrix.noCols;
+    uint64_t noQuadCol = (matrix.noCols + 3) / 4;  // (x + 3) / 4 = ceil(x/4)
+    result.noQuadCols = noQuadCol;
+    result.values = (__m128*)malloc(result.noRows * noQuadCol * sizeof(__m128));
+    if (result.values == NULL) {
+        fprintf(stderr, "Error allocating memory");
         exit(EXIT_FAILURE);
     }
-    float f;
-    for (uint64_t i = 0; i < right.noRows * right.maxNoNonZero; i++) {
-        right.values[i] = _mm_set_ps(f, f, f, f);
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        for (uint64_t j = 0; j < noQuadCol - 1; j++) {
+            result.values[i * noQuadCol + j] = _mm_set_ps(matrix.values[i * matrix.noCols + 4 * j], matrix.values[i * matrix.noCols + 4 * j + 1], matrix.values[i * matrix.noCols + 4 * j + 2], matrix.values[i * matrix.noCols + 4 * j + 3]);
+        }
+        float f1 = matrix.values[i * matrix.noCols + 4 * noQuadCol - 4];
+        float f2 = (i * matrix.noCols + 4 * noQuadCol - 3 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 3];
+        float f3 = (i * matrix.noCols + 4 * noQuadCol - 2 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 2];
+        float f4 = (i * matrix.noCols + 4 * noQuadCol - 1 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 1];
+        result.values[i * noQuadCol + noQuadCol - 1] = _mm_set_ps(f1, f2, f3, f4);
     }
-    return right;
-}*/
+    return result;
+}
 
 /// @brief output debug information
 /// @param left left matrix
@@ -373,6 +465,7 @@ void debug_info_single(char c, struct ELLPACK matrix) {
     }
     pdebug_("\n");
 }
+
 /*
  *  Notes for Simon: commands for testing
  *      make test/run/debug/...
