@@ -1,5 +1,5 @@
-#ifndef GUARD_MAIN
-#define GUARD_MAIN
+#ifndef GUARD_MULT
+#define GUARD_MULT
 
 #include <stdlib.h>
 #include <stdint.h>

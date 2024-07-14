@@ -1,5 +1,5 @@
-#ifndef PARSEARGS_GUARD
-#define PARSEARGS_GUARD
+#ifndef GUARD_PARSEARGS
+#define GUARD_PARSEARGS
 
 #include <stdbool.h>
 

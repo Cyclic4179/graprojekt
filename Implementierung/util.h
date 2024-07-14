@@ -1,5 +1,5 @@
-#ifndef UTIL_GUARD
-#define UTIL_GUARD
+#ifndef GUARD_UTIL
+#define GUARD_UTIL
 
 #include <errno.h>
 #include <stdio.h>

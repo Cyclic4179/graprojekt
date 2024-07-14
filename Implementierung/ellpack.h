@@ -1,3 +1,6 @@
+#ifndef GUARD_ELLPACK
+#define GUARD_ELLPACK
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <xmmintrin.h>
@@ -29,3 +32,5 @@ __attribute__((always_inline)) inline void free_elpk(struct ELLPACK e) {
     free(e.values);
     free(e.indices);
 }
+
+#endif
