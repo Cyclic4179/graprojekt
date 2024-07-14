@@ -1,5 +1,3 @@
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -22,10 +20,12 @@ int main(int argc, char** argv) {
     pdebug("\timpl_version: '%d'\n", args.impl_version);
     pdebug("\ttimeit: '%s'\n", args.timeit ? "true" : "false");
     pdebug("\titerations: '%d'\n", args.iterations);
-    pdebug("\tcheck_equal: '%d'\n", args.check_equal);
+    pdebug("\tcheck_equal: '%s'\n", args.check_equal ? "true" : "false");
+    pdebug("\tmax_diff: '%f'\n", args.eq_max_diff);
 
     void (*matr_mult_ellpack_ptr)(const void*, const void*, void*);
 
+    // map impl_version to correct function
     switch (args.impl_version) {
         case 0:
             matr_mult_ellpack_ptr = matr_mult_ellpack;
@@ -37,11 +37,12 @@ int main(int argc, char** argv) {
             matr_mult_ellpack_ptr = matr_mult_ellpack_V2;
             break;
         default:
-            abortIfNULL_msg(0, "fixme");
+            abortIfNULL_msg(0, "fixme: missing function for impl version");
     }
 
     FILE *file_a, *file_b;
 
+    // read a
     if (args.a != NULL) {
         file_a = abortIfNULL(fopen(args.a, "r"));
         pdebug("reading file a: '%s'\n", args.a);
@@ -55,6 +56,7 @@ int main(int argc, char** argv) {
     elpk_write(a_lpk, stderr);
 #endif
 
+    // read b
     if (args.b != NULL) {
         file_b = abortIfNULL(fopen(args.b, "r"));
         pdebug("start reading file b: '%s'\n", args.b);
@@ -73,23 +75,8 @@ int main(int argc, char** argv) {
 
     if (args.check_equal) {
         pdebug("checking if equal\n");
-        if (a_lpk.noCols != b_lpk.noCols ||
-                a_lpk.noRows != b_lpk.noRows ||
-                a_lpk.maxNoNonZero != b_lpk.maxNoNonZero) {
-            puts("dimensions dont match");
-            exit(EXIT_FAILURE);
-        }
-        for (uint64_t i = 0; i < a_lpk.noRows * a_lpk.maxNoNonZero; i++) {
-            float absdiff = fabsf(a_lpk.values[i] - b_lpk.values[i]);
-
-            if (absdiff >= ELLPACK_ROUGHLY_EQ_DIFF || a_lpk.indices[i] != b_lpk.indices[i]) {
-                printf("values or index at entry '%lu' dont match: (%.50f; %lu) vs (%.50f; %lu) \n",
-                        i, a_lpk.values[i], a_lpk.indices[i], b_lpk.values[i], b_lpk.indices[i]);
-                exit(EXIT_FAILURE);
-            }
-        }
-        puts("equal");
-        exit(EXIT_SUCCESS);
+        elpk_check_equal(a_lpk, b_lpk, args.eq_max_diff);
+        abortIfNULL_msg(0, "this should never be reached");
     }
 
     struct ELLPACK res_lpk;
@@ -131,8 +118,8 @@ int main(int argc, char** argv) {
         fclose(file_out);
     }
 
-    free_elpk(a_lpk);
-    free_elpk(b_lpk);
-    free_elpk(res_lpk);
+    elpk_free(a_lpk);
+    elpk_free(b_lpk);
+    elpk_free(res_lpk);
     exit(EXIT_SUCCESS);
 }

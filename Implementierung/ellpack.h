@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <xmmintrin.h>
 
-#define ELLPACK_ROUGHLY_EQ_DIFF 1
-
 struct ELLPACK {
     uint64_t noRows;
     uint64_t noCols;
@@ -28,7 +26,10 @@ struct DENSE_MATRIX {
     float* values;
 };
 
-__attribute__((always_inline)) inline void free_elpk(struct ELLPACK e) {
+
+void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff);
+
+__attribute__((always_inline)) inline void elpk_free(struct ELLPACK e) {
     free(e.values);
     free(e.indices);
 }

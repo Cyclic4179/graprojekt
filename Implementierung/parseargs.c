@@ -6,7 +6,6 @@
 #include <errno.h>
 
 #include "mult.h"
-#include "ellpack.h"
 #include "time.h"
 #include "parseargs.h"
 
@@ -23,7 +22,7 @@ const char* help_msg =
     "    -V N        impl number (integer between 0 and %d, default: 0)\n"
     "    -B\n"
     "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
-    "    -e          parse files and print true if they are roughly equal (diff of entries < %d)\n"
+    "    -eF         parse files and print true if they are roughly equal (diff of entries < %d)\n"
     "    -x          print max impl version to stdout and exit\n"
     "    -h, --help  Show help and exit\n"
     "\n"
@@ -39,7 +38,25 @@ void print_usage(const char* pname) {
 
 void print_help(const char* pname) {
     print_usage(pname);
-    fprintf(stderr, help_msg, MAX_IMPL_VERSION, ELLPACK_ROUGHLY_EQ_DIFF, pname, pname, pname, pname);
+    fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_EQ_MAX_DIFF, pname, pname, pname, pname);
+}
+
+float parse_float(char opt, const char* pname) {
+    char* ptr = 0;
+    float res = strtof(optarg, &ptr);
+
+    if (*ptr != '\0' || errno == ERANGE) {
+        fprintf(stderr, "not a valid float for option -%c: '%s'", opt, optarg);
+        if (errno == ERANGE) {
+            fprintf(stderr, " (%s)\n", strerror(errno));
+        } else {
+            fputs("\n", stderr);
+        }
+        print_help(pname);
+        exit(EXIT_FAILURE);
+    }
+
+    return res;
 }
 
 int parse_int(char opt, const char* pname) {
@@ -77,16 +94,17 @@ struct ARGS parse_args(int argc, char** argv) {
     parsed_args.timeit = false;
     parsed_args.iterations = 1;
     parsed_args.check_equal = false;
+    parsed_args.eq_max_diff = 1;
 
     static struct option long_opts[] = {
         {"help",    no_argument,    NULL,   'h'},
         {0, 0, 0, 0} // required (man 3 getopt_long)
     };
 
-    while ((opt = getopt_long(argc, argv, "V:B::a:b:o:hex", long_opts, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "V:B::a:b:o:he::x", long_opts, NULL)) != -1) {
         switch (opt) {
             case 'V':
-                parsed_args.impl_version = parse_int('B', pname);
+                parsed_args.impl_version = parse_int('V', pname);
                 if (parsed_args.impl_version < 0 || parsed_args.impl_version > MAX_IMPL_VERSION) {
                     fprintf(stderr, "invalid impl version: %d\n", parsed_args.impl_version);
                     print_usage(pname);
@@ -115,6 +133,14 @@ struct ARGS parse_args(int argc, char** argv) {
                 break;
             case 'e':
                 parsed_args.check_equal = true;
+                if (optarg) {
+                    parsed_args.eq_max_diff = parse_float('e', pname);
+                    if (parsed_args.eq_max_diff< 0) {
+                        fprintf(stderr, "invalid max diff: %d\n", parsed_args.iterations);
+                        print_usage(pname);
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 break;
             case 'x':
                 printf("%d\n", MAX_IMPL_VERSION);
