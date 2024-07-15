@@ -179,10 +179,6 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
-/// @brief THIS FUNCTIONS MIGHT not be well-defined under c standard -> possibly undefined behaviour, NOT WORKING YET
-/// @param a
-/// @param b
-/// @param res
 void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
@@ -192,8 +188,7 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
 
     //########################################## calculation of actual values ##########################################
-    pdebug("%lu, %lu, %lu\n", left.noRows, left.noCols, left.noQuadCols);
-    pdebug("%lu, %lu, %lu\n", right.noRows, right.noCols, right.noQuadCols);
+
     for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
         for (uint64_t j = 0; j < right.noRows; j++) { // Iterates over the columns in the right matrix
             __m128 sum = _mm_setzero_ps(); // accumulator for an entry in result
@@ -202,15 +197,15 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
                 sum += left.values[i * left.noQuadCols + k] * right.values[j * right.noQuadCols + k];
             }
 
-            /*sum = _mm_hadd_ps(sum, sum);
-            sum = _mm_hadd_ps(sum, sum);*/
+            sum = _mm_hadd_ps(sum, sum);
+            sum = _mm_hadd_ps(sum, sum);
             float fsum = _mm_cvtss_f32(sum);
-            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
+            /*sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
             fsum += _mm_cvtss_f32(sum);
             sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
             fsum += _mm_cvtss_f32(sum);
             sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
-            fsum += _mm_cvtss_f32(sum);
+            fsum += _mm_cvtss_f32(sum);*/
             // set value of result to calculated product
             if (fsum != 0.0) {
                 result.indices[resultPos] = j;
@@ -424,9 +419,9 @@ struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
             result.values[i * noQuadCol + j] = _mm_set_ps(matrix.values[i * matrix.noCols + 4 * j], matrix.values[i * matrix.noCols + 4 * j + 1], matrix.values[i * matrix.noCols + 4 * j + 2], matrix.values[i * matrix.noCols + 4 * j + 3]);
         }
         float f1 = matrix.values[i * matrix.noCols + 4 * noQuadCol - 4];
-        float f2 = (i * matrix.noCols + 4 * noQuadCol - 3 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 3];
-        float f3 = (i * matrix.noCols + 4 * noQuadCol - 2 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 2];
-        float f4 = (i * matrix.noCols + 4 * noQuadCol - 1 > matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 1];
+        float f2 = (4 * noQuadCol - 3 >= matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 3];
+        float f3 = (4 * noQuadCol - 2 >= matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 2];
+        float f4 = (4 * noQuadCol - 1 >= matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 1];
         result.values[i * noQuadCol + noQuadCol - 1] = _mm_set_ps(f1, f2, f3, f4);
     }
     return result;
@@ -469,6 +464,24 @@ void debug_info_single(char c, struct ELLPACK matrix) {
         pdebug_("%lu, ", matrix.indices[i]);
     }
     pdebug_("\n");
+}
+
+void debug_XMM(struct DENSE_MATRIX_XMM matrix){
+    pdebug("%lu, %lu, %lu\n", matrix.noRows, matrix.noCols, matrix.noQuadCols);
+    for(uint64_t i = 0; i < matrix.noRows; i++) {
+        for(uint64_t j = 0; j < matrix.noQuadCols; j++) {
+            __m128 value = matrix.values[i * matrix.noQuadCols + j];
+            float f1 = _mm_cvtss_f32(value);
+            value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
+            float f2 = _mm_cvtss_f32(value);
+            value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
+            float f3= _mm_cvtss_f32(value);
+            value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
+            float f4 = _mm_cvtss_f32(value);
+            pdebug("%f, %f, %f, %f, ", f4, f3, f2, f1);
+        }
+        pdebug_("\n");
+    }
 }
 
 /*

@@ -8,7 +8,7 @@
 #include <pmmintrin.h>
 
 
-#define MAX_IMPL_VERSION 3
+#define MAX_IMPL_VERSION 4
 
 /// @brief main function
 /// @param a matrix a
@@ -23,7 +23,7 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* result);
 /// @brief initialize the result matrix, check for multiplicable dimensions
 /// @param left left matrix
 /// @param right right matrix
-/// @param result result matrix
+/// @param result matrix to initialize
 /// @result initialized result matrix
 struct ELLPACK initialize_result(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result);
 
@@ -56,5 +56,9 @@ struct DENSE_MATRIX to_dense(struct ELLPACK matrix);
 
 /// @brief transforms the values of the given dense matrix into XMM float values
 struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX);
+
+/// @brief output debug information of a XMM matrix
+/// @param matrix the matrix to debug
+void debug_XMM(struct DENSE_MATRIX_XMM matrix);
 
 #endif
