@@ -8,7 +8,7 @@ CC := gcc
 # -std=gnu17		Use gnu 17 standard (for getline and <time.h>)
 # -D_POSIX_C_SOURCE=199309L
 #					Include libs to use clock_gettime(CLOCK_MONOTONIC, ...);
-CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17
+CFLAGS := -Wall -Wextra -Wpedantic -std=gnu17 -msse4.1
 CRELEASEFLAGS := -O2 -DNDEBUG
 CDEBUGFLAGS := -g -Og -DDEBUG
 CSANITIZEFLAGS := $(CDEBUGFLAGS) -fsanitize=address \
