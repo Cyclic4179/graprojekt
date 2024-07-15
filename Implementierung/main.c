@@ -36,6 +36,12 @@ int main(int argc, char** argv) {
         case 2:
             matr_mult_ellpack_ptr = matr_mult_ellpack_V2;
             break;
+        case 3:
+            matr_mult_ellpack_ptr = matr_mult_ellpack_V3;
+            break;
+        case 4:
+            matr_mult_ellpack_ptr = matr_mult_ellpack_V4;
+            break;
         default:
             abortIfNULL_msg(0, "fixme: missing function for impl version");
     }
@@ -83,15 +89,17 @@ int main(int argc, char** argv) {
 
     if (args.timeit) {
 #ifdef DEBUG
-        fputs("WARNING:  compiled with debug output\n", stdout);
+        fputs("WARNING:  compiled with debug output\n", stderr);
 #endif
         struct timespec start, end;
         double elapsed_time;
+        //struct ELLPACK* res_lpks = abortIfNULL(calloc(args.iterations, sizeof(struct ELLPACK)));
 
         clock_gettime(CLOCK_MONOTONIC, &start);
 
         for (int i = 0; i < args.iterations; i++) {
             matr_mult_ellpack_ptr(&a_lpk, &b_lpk, &res_lpk);
+            elpk_free(res_lpk);
             sleep(1);
         }
 
@@ -115,11 +123,11 @@ int main(int argc, char** argv) {
 
         pdebug("writing result\n");
         elpk_write(res_lpk, file_out);
-        fclose(file_out);
+        if (args.out != NULL) fclose(file_out);
+        elpk_free(res_lpk);
     }
 
     elpk_free(a_lpk);
     elpk_free(b_lpk);
-    elpk_free(res_lpk);
     exit(EXIT_SUCCESS);
 }
