@@ -31,26 +31,32 @@ for v in $versions; do
     echo start test for version $v
 
     for i in $tests; do
-        echo running: testcase `basename $i`
+        echo run: testcase `basename $i`
 
-        # hack to not trim trailing newline
-        got=$($executable -a $i/a -b $i/b -V $v; echo suffix)
+        # hack to not trim trailing newline, capture stderr, stdout
+        #{
+        #    IFS=$'\n' read -r -d '' captured_stderr;
+        #    IFS=$'\n' read -r -d '' got;
+        #} < <((printf '\0%s\0' "$($cmd; echo suffix; (echo suffix 1>&2))" 1>&2) 2>&1)
+        got=$($executable -a $i/a -b $i/b -V $v && echo suffix)
+        if test "$?" -ne 0; then
+            exit
+        fi
         got=${got%suffix}
+        captured_stderr=${captured_stderr%suffix}
 
         expected=$(cat $i/res ; echo suffix)
         expected=${expected%suffix}
-
-        #echo $got
-        #echo $expected
 
         if error=$($executable -e"$maxerr" -a <(echo "$got") -b <(echo "$expected")); then
             echo " -> "PASSED
         else
             echo
             echo ---------------------
-            echo FAILED: testcase `basename $i`
+            echo FAILED
             echo
 
+            #echo ran: $prettycmd
             echo error: $error
             echo
 
@@ -68,6 +74,10 @@ for v in $versions; do
 
             echo but got:
             print_if_not_too_large "$got"
+            echo
+
+            echo stderr: ">>>>"
+            echo "$captured_stderr<<<<"
 
             exit
         fi

@@ -59,7 +59,11 @@ int main(int argc, char** argv) {
     const struct ELLPACK a_lpk = elpk_read_validate(file_a);
     pdebug("done:\n");
 #ifdef DEBUG
-    elpk_write(a_lpk, stderr);
+    if (a_lpk.noRows * a_lpk.maxNoNonZero > DEBUG_OUTPUT_MAX_SIZE) {
+        fputs("...too large\n", stderr);
+    } else {
+        elpk_write(a_lpk, stderr);
+    }
 #endif
 
     // read b
@@ -73,7 +77,11 @@ int main(int argc, char** argv) {
     const struct ELLPACK b_lpk = elpk_read_validate(file_b);
     pdebug("done:\n");
 #ifdef DEBUG
-    elpk_write(b_lpk, stderr);
+    if (b_lpk.noRows * b_lpk.maxNoNonZero > DEBUG_OUTPUT_MAX_SIZE) {
+        fputs("...too large\n", stderr);
+    } else {
+        elpk_write(b_lpk, stderr);
+    }
 #endif
 
     if (args.a != NULL) fclose(file_a);

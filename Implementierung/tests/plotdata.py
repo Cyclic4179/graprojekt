@@ -11,11 +11,12 @@ from matplotlib.colors import ListedColormap
 if len(sys.argv) == 1:
     print("usage:")
     with open(__file__, "r", encoding="ascii") as f:
+        next(f)
         for l in f:
             l = l.strip()
             if l == "":
                 break
-            l = l.removeprefix('# ').strip()
+            l = l.removeprefix('#').strip()
             if l != "":
                 print(f"  - {l}")
     sys.exit(0)
