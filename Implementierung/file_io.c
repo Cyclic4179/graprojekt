@@ -13,32 +13,28 @@
 /// @param field_for_error part of error message
 /// @return read int
 uint64_t helper_read_int(const char* string, long* pos, char end, char* field_for_error, int line) {
-    uint64_t res = 0;
-    if (line != 1 && string[(*pos)] == '*')
-    {
-        if (string[(*pos) + 1] != end)
-        {
+    if (line != 1 && string[(*pos)] == '*') {
+        if (string[(*pos) + 1] != end) {
             fprintf(stderr, "<%s> contains illegal character after *: '%c'\n", field_for_error, string[(*pos + 1)]);
             exit(EXIT_FAILURE);
         }
         (*pos)++;
+        return 0;
     }
     else {
-        while (string[(*pos)] != end)
-        {
-            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
-            {
+        uint64_t res = 0;
+        while (string[(*pos)] != end) {
+            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9) {
                 res = (res * 10) + (string[(*pos)] - '0');
                 (*pos)++;
             }
-            else
-            {
+            else {
                 fprintf(stderr, "<%s> contains illegal character: '%c'\n", field_for_error, string[(*pos)]);
                 exit(EXIT_FAILURE);
             }
         }
+        return res;
     }
-    return res;
 }
 
 /// @brief helper: read float from string
@@ -48,62 +44,39 @@ uint64_t helper_read_int(const char* string, long* pos, char end, char* field_fo
 /// @param field_for_error part of error message
 /// @return read float
 float helper_read_float(const char* string, long* pos, char end, char* field_for_error) {
-    float res = 0.0f;
-    if (string[(*pos)] == '*')
-    {
-        if (string[(*pos) + 1] != end)
-        {
+    if (string[(*pos)] == '*') {
+        if (string[(*pos) + 1] != end) {
             fprintf(stderr, "<%s> contains illegal character after *: '%c'\n", field_for_error, string[(*pos + 1)]);
             exit(EXIT_FAILURE);
         }
         (*pos)++;
+        return 0.0f;
     }
     else {
-        float negative = 1.0f;
+        long start = *pos;
         if (string[(*pos)] == '-') {
-            negative = -1.0f;
             (*pos)++;
         }
-        int decimal_place = 0;
-        while (string[(*pos)] != end)
-        {
-            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9)
-            {
-                if (0 == decimal_place)
-                {
-                    res = (res * 10) + (string[(*pos)] - '0');
-                }
-                else
-                {
-                    int decimal_place_tmp = decimal_place;
-                    float ten = 10.0f;
-                    while (decimal_place_tmp > 1) {
-                        ten *= 10;
-                        decimal_place_tmp--;
-                    }
-                    res += (string[(*pos)] - '0') / ten;
-                    decimal_place++;
-                }
+        bool decimal_point = false;
+        while (string[(*pos)] != end) {
+            if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9) {
                 (*pos)++;
             }
             else if (string[(*pos)] == '.') {
-                if (0 < decimal_place)
-                {
+                if (decimal_point) {
                     fprintf(stderr, "<%s> contains illegal second decimal point\n", field_for_error);
                     exit(EXIT_FAILURE);
                 }
-                decimal_place = 1;
+                decimal_point = true;
                 (*pos)++;
             }
-            else
-            {
+            else {
                 fprintf(stderr, "<%s> contains illegal character: '%c'\n", field_for_error, string[(*pos)]);
                 exit(EXIT_FAILURE);
             }
         }
-        res = res * negative;
+        return strtof(&string[start], NULL);
     }
-    return res;
 }
 
 /// @brief reads and validates a matrix
@@ -115,8 +88,8 @@ struct ELLPACK elpk_read_validate(FILE* file) {
     struct ELLPACK result;
     long pos = 0;
 
-    abortIfNULL_msg((void*) (getline(&string, &len, file) + 1),
-            "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
+        "could not read from file");
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;
@@ -126,26 +99,26 @@ struct ELLPACK elpk_read_validate(FILE* file) {
 
     result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero", 1);
 
-    abortIfNULL_msg((void*) (getline(&string, &len, file) + 1),
-            "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
+        "could not read from file");
     pos = 0;
 
     long itemsCount = result.noRows * result.maxNoNonZero;
 
     result.values = (float*)abortIfNULL_msg(malloc(itemsCount * sizeof(float)),
-            "could not allocate memory");
+        "could not allocate memory");
     for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.values[i] = helper_read_float(string, &pos, end, "values");
         pos++;
     }
 
-    abortIfNULL_msg((void*) (getline(&string, &len, file) + 1),
-            "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
+        "could not read from file");
     pos = 0;
 
     result.indices = (uint64_t*)abortIfNULL_msg(malloc(itemsCount * sizeof(uint64_t)),
-            "could not allocate memory");
+        "could not allocate memory");
     for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.indices[i] = helper_read_int(string, &pos, end, "indices", 3);
@@ -184,28 +157,31 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 if (val != 0) {
                     fputs("\n", stderr);
                     pdebug("elpk_write: detected value not eq 0 but smaller"
-                           " than 0.000001 at index %lu: %.*f\n",
-                           index, 50, matrix.values[index]);
+                        " than 0.000001 at index %lu: %.*f\n",
+                        index, 50, matrix.values[index]);
                 }
 #endif
 
                 if (first) {
                     fputs("*", file);
                     first = false;
-                } else {
+                }
+                else {
                     fputs(",*", file);
                 }
 
                 index++;
 
-            } else {
+            }
+            else {
 
                 ftostr(sizeof(s), s, matrix.values[index++]);
 
                 if (first) {
                     fprintf(file, "%s", s);
                     first = false;
-                } else {
+                }
+                else {
                     fprintf(file, ",%s", s);
                 }
             }
@@ -229,15 +205,18 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 if (first) {
                     fputs("*", file);
                     first = false;
-                } else {
+                }
+                else {
                     fputs(",*", file);
                 }
 
-            } else if (first) {
+            }
+            else if (first) {
                 fprintf(file, "%lu", matrix.indices[index]);
                 first = false;
 
-            } else {
+            }
+            else {
                 fprintf(file, ",%lu", matrix.indices[index]);
             }
 
