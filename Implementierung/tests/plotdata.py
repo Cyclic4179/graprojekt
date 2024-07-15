@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+#
+# $1: csv file to open
 
 import sys
 import matplotlib.pyplot as plt
@@ -9,13 +11,13 @@ from matplotlib.colors import ListedColormap
 if len(sys.argv) == 1:
     print("usage:")
     with open(__file__, "r", encoding="ascii") as f:
-        next(f)
-        next(f)
         for l in f:
             l = l.strip()
             if l == "":
                 break
-            print(f"  - {l.removeprefix('# ')}")
+            l = l.removeprefix('# ').strip()
+            if l != "":
+                print(f"  - {l}")
     sys.exit(0)
 
 file = sys.argv[1]

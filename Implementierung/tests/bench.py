@@ -9,6 +9,7 @@
 
 import sys
 import subprocess
+import re
 from pathlib import Path
 import datetime
 import pandas as pd
@@ -17,13 +18,13 @@ import pandas as pd
 if len(sys.argv) == 1:
     print("usage:")
     with open(__file__, "r", encoding="ascii") as f:
-        next(f)
-        next(f)
         for l in f:
             l = l.strip()
             if l == "":
                 break
-            print(f"  - {l.removeprefix('# ')}")
+            l = l.removeprefix('# ').strip()
+            if l != "":
+                print(f"  - {l}")
     sys.exit(0)
 
 
@@ -40,9 +41,7 @@ def eprint(*args, **kvargs):
 
 
 def exec_bench(a: str, b: str, impl_version: int) -> float:
-    '''
-    execute benchmark and get time
-    '''
+    ''' execute benchmark and get time '''
     eprint(f"run: {executable} -a {a} -b {b} -V{impl_version} -B{iterations}")
 
     # f"{executable} -a {a} -b {b} -B{iterations} | awk '{{print $6}}'"
@@ -61,25 +60,31 @@ def exec_bench(a: str, b: str, impl_version: int) -> float:
     return float(result.stdout.split(" ")[5])
 
 
+def natural_keys(obj):
+    return [ int(c) if c.isdigit() else c for c in re.split(r'(\d+)', str(obj)) ]
+
+
 def main():
     generated = Path(test_dir, "generated")
 
-    ls = [p for p in generated.iterdir() if p.is_dir()]
+    ls = [p for p in sorted(generated.iterdir(), key=natural_keys) if p.is_dir()]
     vs = list(range(max_impl_version + 1))
 
-    l = {f"v{v}":
+    res = {f"v{v}":
          {f"t{p.name}": exec_bench(p.joinpath("a"), p.joinpath("b"), v)
           for p in ls} for v in vs}
 
-    sorted_l = dict(sorted(((k, dict(sorted(v.items()))) for k, v in l.items())))
+    #sorted_l = dict(sorted(((k, dict(sorted(v.items()))) for k, v in l.items())))
 
-    df = pd.DataFrame(sorted_l)
+    df = pd.DataFrame(res)
     df.index.name = "tests"
 
     print(df)
 
     timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    df.to_csv(Path(benchmark_dir, f"bench_{timestr}.csv"))
+    dest = Path(benchmark_dir, f"bench_{timestr}.csv")
+    print("result in:", dest)
+    df.to_csv(dest)
     #df.to_csv(Path(benchmark_dir, "bench.csv"))
 
 if __name__ == "__main__":

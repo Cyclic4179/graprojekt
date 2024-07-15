@@ -19,13 +19,13 @@ from scipy.sparse import lil_matrix, csr_matrix
 if len(sys.argv) == 1:
     print("usage:")
     with open(__file__, "r", encoding="ascii") as f:
-        next(f)
-        next(f)
         for l in f:
             l = l.strip()
             if l == "":
                 break
-            print(f"  - {l.removeprefix('# ')}")
+            l = l.removeprefix('# ').strip()
+            if l != "":
+                print(f"  - {l}")
     sys.exit(0)
 
 
@@ -237,7 +237,7 @@ def main():
         xxx(str(i+1), n=n, k=k, m=m,
             no_non_zero_a=nonzero_a, no_non_zero_b=nonzero_b,
             max_val_a=MAX_VAL, max_val_b=MAX_VAL,
-            floats=True)
+            floats=FLOATS)
 
 
 if __name__ == "__main__":

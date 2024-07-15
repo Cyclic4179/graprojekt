@@ -20,9 +20,9 @@ function print_if_not_too_large() {
 }
 
 
-#versions=`seq 0 $($executable -x)`
-versions="0 1 2"
-tests=`find * -maxdepth 0 -type d -not -name 'generated' ; echo generated/* | tr " " "\n" | sort -n`
+versions=`seq 0 $($executable -x)`
+#versions="0 1 2"
+tests=`find * -maxdepth 0 -type d -not -name 'generated' ; { echo generated/* | tr " " "\n" | sort -V ; }`
 maxerr=$2
 
 echo testing versions: $versions
@@ -34,7 +34,6 @@ for v in $versions; do
         echo running: testcase `basename $i`
 
         # hack to not trim trailing newline
-        #echo $executable -a $i/a -b $i/b 2>/dev/null -V $v
         got=$($executable -a $i/a -b $i/b -V $v; echo suffix)
         got=${got%suffix}
 
@@ -43,16 +42,9 @@ for v in $versions; do
 
         #echo $got
         #echo $expected
-        #if [[ "$got" = "$expected" ]]; then
-        #echo "$executable -e <<<\"$got\" <<<\"$expected\""
-        #if $executable -e <<<"$got" <<<"$expected"; then
-        #if $executable -e -a <(echo "$got") -b <(echo "$expected") 2> >(read -r error) >/dev/null; then
-        #read -r res < <($executable -e -a <(echo "$got") -b <(echo "$expected") 2&>1)
-        #if [[ "$res" = "equal" ]]; then
 
         if error=$($executable -e"$maxerr" -a <(echo "$got") -b <(echo "$expected")); then
             echo " -> "PASSED
-            #: testcase `basename $i`
         else
             echo
             echo ---------------------
@@ -82,8 +74,6 @@ for v in $versions; do
     done
 done
 
-if test -z "$failed"; then
-    echo SUCCESS
-fi
+echo SUCCESS
 
-cd - 2&>1 >/dev/null
+cd - >/dev/null
