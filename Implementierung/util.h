@@ -1,25 +1,18 @@
 #ifndef GUARD_UTIL
 #define GUARD_UTIL
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+
+/// @brief print error msg and exit with EXIT_FAILURE, used by __abort_null for smaller
+/// program size (and better program cache as not whole error printing is inlined)
+__attribute__((noreturn)) void __abort(const char* desc, const char* func, const char* file, int line, const char* msg);
 
 /// @brief print pretty error message and abort if pointer is NULL
 __attribute__((always_inline)) inline void* __abort_null(void* value, const char* desc, const char* func,
                                                          const char* file, int line, const char* msg) {
     if (!value) {
-        fputs("ERROR:    ", stderr);
-        if (*msg != 0) {
-            fprintf(stderr, "%s: ", msg);
-        }
-        fprintf(stderr, "'%s' was NULL", desc);
-        if (errno != 0) {
-            fprintf(stderr, " (error: %s)", strerror(errno));
-        }
-        fprintf(stderr, " in %s at %s, line %d\n", func, file, line);
-        abort();
+        __abort(desc, func, file, line, msg);
     }
     return value;
 }
