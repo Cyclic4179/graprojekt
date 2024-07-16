@@ -10,32 +10,34 @@
 #include "mult.h"
 #include "time.h"
 
-const char* usage_msg = "Usage: %s [options] [-]\n";
+void print_usage(const char* pname) {
+    const char* usage_msg = "Usage: %s [options] [-]\n";
 
-// clang-format off
-const char* help_msg =
-    "\n"
-    "Optional arguments:\n"
-    "    -a PATH\n"
-    "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
-    "    -o PATH     path to result (if omitted: stdout)\n"
-    "    -V N        impl number (integer between 0 and %d, default: 0)\n"
-    "    -B\n"
-    "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
-    "    -eF         parse files and print true if they are roughly equal (diff of entries < %d)\n"
-    "    -x          print max impl version to stdout and exit\n"
-    "    -h, --help  Show help and exit\n"
-    "\n"
-    "Examples:\n"
-    "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
-    "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
-    "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
-    "%s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
-// clang-format on
-
-void print_usage(const char* pname) { fprintf(stderr, usage_msg, pname, pname, pname); }
+    fprintf(stderr, usage_msg, pname, pname, pname);
+}
 
 void print_help(const char* pname) {
+    // clang-format off
+    const char* help_msg =
+        "\n"
+        "Optional arguments:\n"
+        "    -a PATH\n"
+        "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
+        "    -o PATH     path to result (if omitted: stdout)\n"
+        "    -V N        impl number (integer between 0 and %d, default: 0)\n"
+        "    -B\n"
+        "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
+        "    -eF         parse files and print true if they are roughly equal (diff of entries < %d)\n"
+        "    -x          print max impl version to stdout and exit\n"
+        "    -h, --help  Show help and exit\n"
+        "\n"
+        "Examples:\n"
+        "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
+        "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
+        "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
+        "%s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
+    // clang-format on
+
     print_usage(pname);
     fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_EQ_MAX_DIFF, pname, pname, pname, pname);
 }

@@ -2,7 +2,6 @@
 #define GUARD_ELLPACK
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <xmmintrin.h>
 
 struct ELLPACK {
@@ -26,6 +25,10 @@ struct DENSE_MATRIX {
     float* values;
 };
 
+/// @brief checks wether two ELLPACK matrices are equal (enough)
+/// @param a matrix a
+/// @param b matrix b
+/// @param max_diff maximum absolute error
 void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff);
 
 __attribute__((always_inline)) inline void elpk_free(struct ELLPACK e) {

@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,9 +24,9 @@ void ftostr(size_t n, char s[n], float f) {
     }
 }
 
-
 /// @brief function that prints error msg and exits
-__attribute__((noreturn)) void __abort(const char* desc, const char* func, const char* file, int line, const char* msg) {
+__attribute__((noreturn)) void __abort(const char* desc, const char* func, const char* file, int line,
+                                       const char* msg) {
     fputs("ERROR:    ", stderr);
     if (*msg != 0) {
         fprintf(stderr, "%s: ", msg);

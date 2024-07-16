@@ -45,11 +45,12 @@ int main(int argc, char** argv) {
             abortIfNULL_msg(0, "fixme: missing function for impl version");
     }
 
-    FILE *file_a, *file_b;
+    FILE* file_a;
+    FILE* file_b;
 
     // read a
     if (args.a != NULL) {
-        file_a = abortIfNULL(fopen(args.a, "r"));
+        file_a = (FILE*)abortIfNULL(fopen(args.a, "r"));
         pdebug("reading file a: '%s'\n", args.a);
     } else {
         file_a = stdin;
@@ -67,7 +68,7 @@ int main(int argc, char** argv) {
 
     // read b
     if (args.b != NULL) {
-        file_b = abortIfNULL(fopen(args.b, "r"));
+        file_b = (FILE*)abortIfNULL(fopen(args.b, "r"));
         pdebug("start reading file b: '%s'\n", args.b);
     } else {
         file_b = stdin;
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
 
         FILE* file_out;
         if (args.out != NULL) {
-            file_out = abortIfNULL(fopen(args.out, "w"));
+            file_out = (FILE*)abortIfNULL(fopen(args.out, "w"));
         } else {
             file_out = stdout;
         }

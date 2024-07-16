@@ -1,5 +1,11 @@
 #include "mult.h"
 
+#include <pmmintrin.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <xmmintrin.h>
+
 #include "ellpack.h"
 #include "util.h"
 
@@ -57,7 +63,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     result = initialize_result(left, right, result);
 
     // stores the products of a row of left with all columns of right
-    float* sum = abortIfNULL(malloc(right.noCols * sizeof(float)));
+    float* sum = (float*)abortIfNULL(malloc(right.noCols * sizeof(float)));
 
     uint64_t resultPos = 0;                        // pointer to next position to insert a value into result matrix
     for (uint64_t j = 0; j < right.noCols; j++) {  // initialize all values with 0
@@ -400,6 +406,8 @@ void debug_info_single(char c, struct ELLPACK matrix) {
     pdebug_("\n");
 }
 
+/// @brief output debug information of a XMM matrix
+/// @param matrix the matrix to debug
 void debug_XMM(struct DENSE_MATRIX_XMM matrix) {
     pdebug("%lu, %lu, %lu\n", matrix.noRows, matrix.noCols, matrix.noQuadCols);
     for (uint64_t i = 0; i < matrix.noRows; i++) {

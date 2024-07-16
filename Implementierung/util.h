@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-
 /// @brief print error msg and exit with EXIT_FAILURE, used by __abort_null for smaller
 /// program size (and better program cache as not whole error printing is inlined)
 __attribute__((noreturn)) void __abort(const char* desc, const char* func, const char* file, int line, const char* msg);
@@ -35,5 +34,8 @@ __attribute__((always_inline)) inline void* __abort_null(void* value, const char
 /// @param s writable string
 /// @param f float value to convert
 void ftostr(size_t n, char s[n], float f);
+
+/// @brief function that prints error msg and exits
+__attribute__((noreturn)) void __abort(const char* desc, const char* func, const char* file, int line, const char* msg);
 
 #endif

@@ -7,6 +7,10 @@
 
 #include "util.h"
 
+/// @brief checks wether two ELLPACK matrices are equal (enough)
+/// @param a matrix a
+/// @param b matrix b
+/// @param max_diff maximum absolute error
 void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
     // buffer for storing floats in nice format
     char s1[256];

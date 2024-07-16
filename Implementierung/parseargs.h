@@ -23,6 +23,14 @@ struct ARGS {
 
 #define DEFAULT_EQ_MAX_DIFF 1
 
+void print_usage(const char* pname);
+
+void print_help(const char* pname);
+
+float parse_float(char opt, const char* pname);
+
+int parse_int(char opt, const char* pname);
+
 struct ARGS parse_args(int argc, char** argv);
 
 #endif
