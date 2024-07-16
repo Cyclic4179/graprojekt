@@ -392,6 +392,7 @@ struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
     return result;
 }
 
+#ifdef DEBUG
 /// @brief output debug information
 /// @param left left matrix
 /// @param right right matrix
@@ -448,6 +449,7 @@ void debug_XMM(struct DENSE_MATRIX_XMM matrix) {
         pdebug_("\n");
     }
 }
+#endif
 
 /*
  *  Notes for Simon: commands for testing
