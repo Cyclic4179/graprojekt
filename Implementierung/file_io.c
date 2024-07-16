@@ -1,10 +1,12 @@
 #include "file_io.h"
-#include "util.h"
-#include "ellpack.h"
+
 #include <math.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+#include "ellpack.h"
+#include "util.h"
 
 /// @brief helper: read int from string
 /// @param string string
@@ -20,15 +22,13 @@ uint64_t helper_read_int(const char* string, long* pos, char end, char* field_fo
         }
         (*pos)++;
         return 0;
-    }
-    else {
+    } else {
         uint64_t res = 0;
         while (string[(*pos)] != end) {
             if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9) {
                 res = (res * 10) + (string[(*pos)] - '0');
                 (*pos)++;
-            }
-            else {
+            } else {
                 fprintf(stderr, "<%s> contains illegal character: '%c'\n", field_for_error, string[(*pos)]);
                 exit(EXIT_FAILURE);
             }
@@ -51,8 +51,7 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
         }
         (*pos)++;
         return 0.0f;
-    }
-    else {
+    } else {
         long start = *pos;
         if (string[(*pos)] == '-') {
             (*pos)++;
@@ -61,16 +60,14 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
         while (string[(*pos)] != end) {
             if (0 <= (string[(*pos)] - '0') && (string[(*pos)] - '0') <= 9) {
                 (*pos)++;
-            }
-            else if (string[(*pos)] == '.') {
+            } else if (string[(*pos)] == '.') {
                 if (decimal_point) {
                     fprintf(stderr, "<%s> contains illegal second decimal point\n", field_for_error);
                     exit(EXIT_FAILURE);
                 }
                 decimal_point = true;
                 (*pos)++;
-            }
-            else {
+            } else {
                 fprintf(stderr, "<%s> contains illegal character: '%c'\n", field_for_error, string[(*pos)]);
                 exit(EXIT_FAILURE);
             }
@@ -88,8 +85,7 @@ struct ELLPACK elpk_read_validate(FILE* file) {
     struct ELLPACK result;
     long pos = 0;
 
-    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
-        "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1), "could not read from file");
 
     result.noRows = helper_read_int(string, &pos, ',', "noRows", 1);
     pos++;
@@ -99,26 +95,22 @@ struct ELLPACK elpk_read_validate(FILE* file) {
 
     result.maxNoNonZero = helper_read_int(string, &pos, '\n', "maxNoNonZero", 1);
 
-    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
-        "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1), "could not read from file");
     pos = 0;
 
     long itemsCount = result.noRows * result.maxNoNonZero;
 
-    result.values = (float*)abortIfNULL_msg(malloc(itemsCount * sizeof(float)),
-        "could not allocate memory");
+    result.values = (float*)abortIfNULL_msg(malloc(itemsCount * sizeof(float)), "could not allocate memory");
     for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.values[i] = helper_read_float(string, &pos, end, "values");
         pos++;
     }
 
-    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1),
-        "could not read from file");
+    abortIfNULL_msg((void*)(getline(&string, &len, file) + 1), "could not read from file");
     pos = 0;
 
-    result.indices = (uint64_t*)abortIfNULL_msg(malloc(itemsCount * sizeof(uint64_t)),
-        "could not allocate memory");
+    result.indices = (uint64_t*)abortIfNULL_msg(malloc(itemsCount * sizeof(uint64_t)), "could not allocate memory");
     for (long i = 0; i < itemsCount; i++) {
         char end = i == itemsCount - 1 ? '\n' : ',';
         result.indices[i] = helper_read_int(string, &pos, end, "indices", 3);
@@ -141,22 +133,21 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     fprintf(file, "%lu,%lu,%lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
 
     index = 0;
-    bool first = true; // just a helper bool to not print ',' at start; not that nice ik but whatever
-    char s[256]; // buffer for storing a single float in nice format
+    bool first = true;  // just a helper bool to not print ',' at start; not that nice ik but whatever
+    char s[256];        // buffer for storing a single float in nice format
 
     // print values
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-
             val = matrix.values[index];
             absval = fabsf(val);
 
             if (absval < 0.000001) {
-
 #ifdef DEBUG
                 if (val != 0) {
                     fputs("\n", stderr);
-                    pdebug("elpk_write: detected value not eq 0 but smaller"
+                    pdebug(
+                        "elpk_write: detected value not eq 0 but smaller"
                         " than 0.000001 at index %lu: %.*f\n",
                         index, 50, matrix.values[index]);
                 }
@@ -165,23 +156,19 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 if (first) {
                     fputs("*", file);
                     first = false;
-                }
-                else {
+                } else {
                     fputs(",*", file);
                 }
 
                 index++;
 
-            }
-            else {
-
+            } else {
                 ftostr(sizeof(s), s, matrix.values[index++]);
 
                 if (first) {
                     fprintf(file, "%s", s);
                     first = false;
-                }
-                else {
+                } else {
                     fprintf(file, ",%s", s);
                 }
             }
@@ -197,7 +184,6 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     // print indices
     for (i = 0; i < matrix.noRows; i++) {
         for (j = 0; j < matrix.maxNoNonZero; j++) {
-
             val = matrix.values[index];
             absval = val > 0 ? val : -val;
 
@@ -205,18 +191,15 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
                 if (first) {
                     fputs("*", file);
                     first = false;
-                }
-                else {
+                } else {
                     fputs(",*", file);
                 }
 
-            }
-            else if (first) {
+            } else if (first) {
                 fprintf(file, "%lu", matrix.indices[index]);
                 first = false;
 
-            }
-            else {
+            } else {
                 fprintf(file, ",%lu", matrix.indices[index]);
             }
 
@@ -228,49 +211,3 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
 
     fseek(file, 0, SEEK_SET);
 }
-
-// /// @brief helper: read a file to a pointer
-// /// @param filePath path to file
-// /// @param fileSize size of file in Bytes
-// /// @param string pointer for result
-// void readFile(char* filePath, long fileSize, char* string) {
-//     FILE* file = abortIfNULL(fopen(filePath, "r"));
-//     fread(string, fileSize, 1, file);
-//     fclose(file);
-//     string[fileSize - 1] = 0;
-// }
-
-// /// @brief tests the function `matr_mult_ellpack`
-// /// @param nr test in `./sample-inputs/` to execute
-// void test(int nr) {
-//     char* filePathLeft;
-//     long fileSizeLeft;
-//     char* filePathRight;
-//     long fileSizeRight;
-
-//     switch (nr)
-//     {
-//     case 1:
-//         filePathLeft = "./Implementierung/sample-inputs/1.txt";
-//         fileSizeLeft = 40;
-//         filePathRight = "./Implementierung/sample-inputs/1.txt";
-//         fileSizeRight = 40;
-//         break;
-
-//     default:
-//         return;
-//     }
-
-//     char* leftString = abortIfNULL(malloc(fileSizeLeft));
-//     readFile(filePathLeft, fileSizeLeft, leftString);
-//     char* rightString = abortIfNULL(malloc(fileSizeRight));
-//     readFile(filePathRight, fileSizeRight, rightString);
-
-//     char* result = abortIfNULL(malloc(fileSizeLeft + fileSizeRight)); // TODO real values
-
-//     matr_mult_ellpack((void*)leftString, (void*)rightString, (void*)result);
-
-//     free(leftString);
-//     free(rightString);
-//     free(result);
-// }

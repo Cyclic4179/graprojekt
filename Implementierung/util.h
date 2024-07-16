@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /// @brief print pretty error message and abort if pointer is NULL
-__attribute__((always_inline)) inline void* __abort_null(void* value, const char* desc, const char* func, const char* file, int line, const char* msg) {
+__attribute__((always_inline)) inline void* __abort_null(void* value, const char* desc, const char* func,
+                                                         const char* file, int line, const char* msg) {
     if (!value) {
         fputs("ERROR:    ", stderr);
         if (*msg != 0) {
@@ -24,18 +24,16 @@ __attribute__((always_inline)) inline void* __abort_null(void* value, const char
     return value;
 }
 
-
 #define abortIfNULL(i) __abort_null(i, #i, __func__, __FILE__, __LINE__, "")
 #define abortIfNULL_msg(i, j) __abort_null(i, #i, __func__, __FILE__, __LINE__, j)
 
-
 #ifdef DEBUG
-#   define pdebug(...) fprintf(stderr, "DEBUG:    " __VA_ARGS__)
-#   define pdebug_(...) fprintf(stderr, __VA_ARGS__)
-#   define DEBUG_OUTPUT_MAX_SIZE 200
+#define pdebug(...) fprintf(stderr, "DEBUG:    " __VA_ARGS__)
+#define pdebug_(...) fprintf(stderr, __VA_ARGS__)
+#define DEBUG_OUTPUT_MAX_SIZE 200
 #else
-#   define pdebug(...)
-#   define pdebug_(...)
+#define pdebug(...)
+#define pdebug_(...)
 #endif
 
 /// @brief write into string from float without trailing zeros and without scientific notation

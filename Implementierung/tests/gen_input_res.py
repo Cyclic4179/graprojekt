@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-'''Usage:
+
+"""Usage:
     gen_input_res.py [rd] [options]
 
 Options:
     -o PATH     destination dir, if not exists, will be created [default: generated]
     -a N        amount of random dirs to create (int), if omitted, default is executed
 
-    -d N        min dimention (int >= 0), [default: 1]
-    -D N        max dimention (int >= -d), [default: 1000]
+    -d N        min dimension (int >= 0), [default: 1]
+    -D N        max dimension (int >= -d), [default: 1000]
 
     -n N        min no_non_zero (int >= 0), [default: 0]
     -N N        max no_non_zero (int >= -n), [default: inf]
@@ -17,7 +18,7 @@ Options:
 
     -f          use floats instead of int
     -h          display this msg
-'''
+"""
 
 from pathlib import Path
 from random import randint, uniform, sample
@@ -29,7 +30,8 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Opt:
-    """ options container """
+    """options container"""
+
     gen_dir: Path = field(init=False)
     amount: int = field(init=False)
 
@@ -50,14 +52,14 @@ opt = Opt()
 
 
 def gen_random_value(min_val: int, max_val: int, floats: bool) -> float:
-    """ Randomly generates a value """
+    """Randomly generates a value"""
     if floats:
         return uniform(min_val, max_val)
     return float(randint(min_val, max_val))
 
 
 def elpk_str_of_csr_matrix(a: csr_matrix, no_non_zero: int) -> str:
-    """ Get ellpack string of csr_matrix """
+    """Get ellpack string of csr_matrix"""
     if not a.has_sorted_indices:
         a.sort_indices()
 
@@ -70,12 +72,12 @@ def elpk_str_of_csr_matrix(a: csr_matrix, no_non_zero: int) -> str:
         amount_non_zero = 0
 
         indptr = a.indptr[i]
-        next_indptr = a.indptr[i+1]
+        next_indptr = a.indptr[i + 1]
 
         for j in a.indices[indptr:next_indptr]:
             # j = current column
             data = a.data[data_index]
-            data_str = "{0:.6f}".format(data).rstrip('0').rstrip('.')
+            data_str = "{0:.6f}".format(data).rstrip("0").rstrip(".")
 
             s_val += f"{data_str},"
             s_index += f"{j},"
@@ -160,27 +162,35 @@ def create(
             a[i, cur_row] = gen_random_value(min_val, max_val, floats)
             j += 1
 
-            cur_row += randint(1, m - cur_row) # next index
+            cur_row += randint(1, m - cur_row)  # next index
 
     return a.tocsr()
 
 
-def xxx(dest: str | Path, *, n: int, k: int, m: int,
-        no_non_zero_a: int,
-        no_non_zero_b: int,
-        min_val_a: int | None = None,
-        max_val_a: int | None = None,
-        min_val_b: int | None = None,
-        max_val_b: int | None = None,
-        floats = False):
+def xxx(
+    dest: str | Path,
+    *,
+    n: int,
+    k: int,
+    m: int,
+    no_non_zero_a: int,
+    no_non_zero_b: int,
+    min_val_a: int | None = None,
+    max_val_a: int | None = None,
+    min_val_b: int | None = None,
+    max_val_b: int | None = None,
+    floats=False,
+):
     """
-    create, multiply, print matricies
+    create, multiply, print matrices
     """
     a = create(n, k, no_non_zero_a, min_val_a, max_val_a, floats)
     b = create(k, m, no_non_zero_b, min_val_b, max_val_b, floats)
     res = a @ b
 
-    no_non_zero_res = max(res.indptr[i+1] - res.indptr[i] for i in range(len(res.indptr) - 1))
+    no_non_zero_res = max(
+        res.indptr[i + 1] - res.indptr[i] for i in range(len(res.indptr) - 1)
+    )
 
     write_elpk(Path(dest, "a"), a, no_non_zero_a)
     write_elpk(Path(dest, "b"), b, no_non_zero_b)
@@ -188,49 +198,84 @@ def xxx(dest: str | Path, *, n: int, k: int, m: int,
 
 
 def default():
-    xxx("1", n=2, k=2, m=3,
-        no_non_zero_a=1, no_non_zero_b=1,
-        max_val_a=100, max_val_b=100)
+    xxx(
+        "1",
+        n=2,
+        k=2,
+        m=3,
+        no_non_zero_a=1,
+        no_non_zero_b=1,
+        max_val_a=100,
+        max_val_b=100,
+    )
 
-    xxx("2", n=1, k=100, m=80,
-        no_non_zero_a=80, no_non_zero_b=2,
-        max_val_a=1, max_val_b=1)
+    xxx(
+        "2",
+        n=1,
+        k=100,
+        m=80,
+        no_non_zero_a=80,
+        no_non_zero_b=2,
+        max_val_a=1,
+        max_val_b=1,
+    )
 
-    #xxx("3", n=1000, k=1000, m=1000,
+    # xxx("3", n=1000, k=1000, m=1000,
     #    no_non_zero_a=400, no_non_zero_b=200,
     #    max_val_a=99, max_val_b=99)
 
-    xxx("4", n=100, k=100, m=100,
-        no_non_zero_a=80, no_non_zero_b=80,
-        max_val_a=99, max_val_b=99)
+    xxx(
+        "4",
+        n=100,
+        k=100,
+        m=100,
+        no_non_zero_a=80,
+        no_non_zero_b=80,
+        max_val_a=99,
+        max_val_b=99,
+    )
 
-    xxx("5", n=9, k=9, m=9,
-        no_non_zero_a=4, no_non_zero_b=4,
-        max_val_a=opt.max_val, max_val_b=opt.max_val)
+    xxx(
+        "5",
+        n=9,
+        k=9,
+        m=9,
+        no_non_zero_a=4,
+        no_non_zero_b=4,
+        max_val_a=opt.max_val,
+        max_val_b=opt.max_val,
+    )
 
-    #xxx("6", n=4, k=4, m=4,
+    # xxx("6", n=4, k=4, m=4,
     #    no_non_zero_a=1, no_non_zero_b=1,
     #    max_val_a=99, max_val_b=99,
     #    floats=True)
 
-    #xxx("7", n=9, k=9, m=9,
+    # xxx("7", n=9, k=9, m=9,
     #    no_non_zero_a=4, no_non_zero_b=4,
     #    max_val_a=99, max_val_b=99,
     #    floats=True)
 
-    xxx("8", n=9, k=9, m=9,
-        no_non_zero_a=4, no_non_zero_b=4,
-        max_val_a=opt.max_val, max_val_b=opt.max_val,
-        floats=True)
+    xxx(
+        "8",
+        n=9,
+        k=9,
+        m=9,
+        no_non_zero_a=4,
+        no_non_zero_b=4,
+        max_val_a=opt.max_val,
+        max_val_b=opt.max_val,
+        floats=True,
+    )
 
     # ./main could not handle
-    #xxx("8", n=100_000, k=100_000, m=100_000,
+    # xxx("8", n=100_000, k=100_000, m=100_000,
     #    no_non_zero_a=10, no_non_zero_b=10,
     #    max_val_a=100, max_val_b=100)
 
 
 def rd_gen():
-    """ random generate a, b, res according to opts """
+    """random generate a, b, res according to opts"""
     for i in range(opt.amount):
         n = randint(opt.min_dim, opt.max_dim)
         k = randint(opt.min_dim, opt.max_dim)
@@ -239,10 +284,17 @@ def rd_gen():
         nonzero_a = randint(0, max(min(k, opt.max_no_non_zero), opt.min_no_non_zero))
         nonzero_b = randint(0, max(min(m, opt.max_no_non_zero), opt.min_no_non_zero))
 
-        xxx(str(i+1), n=n, k=k, m=m,
-            no_non_zero_a=nonzero_a, no_non_zero_b=nonzero_b,
-            max_val_a=opt.max_val, max_val_b=opt.max_val,
-            floats=opt.floats)
+        xxx(
+            str(i + 1),
+            n=n,
+            k=k,
+            m=m,
+            no_non_zero_a=nonzero_a,
+            no_non_zero_b=nonzero_b,
+            max_val_a=opt.max_val,
+            max_val_b=opt.max_val,
+            floats=opt.floats,
+        )
 
 
 def main():

@@ -12,7 +12,9 @@
     "gitlens.plusFeatures.enabled": false,
     "gitlens.statusBar.enabled": false,
     "[c]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "xaver.clang-format"
     },
-    "C_Cpp.formatting": "vcFormat"
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    }
 }

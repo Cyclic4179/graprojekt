@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
-#include "mult.h"
-#include "file_io.h"
 #include "ellpack.h"
-#include "util.h"
+#include "file_io.h"
+#include "mult.h"
 #include "parseargs.h"
-
+#include "util.h"
 
 int main(int argc, char** argv) {
     struct ARGS args = parse_args(argc, argv);
@@ -101,7 +100,7 @@ int main(int argc, char** argv) {
 #endif
         struct timespec start, end;
         double elapsed_time;
-        //struct ELLPACK* res_lpks = abortIfNULL(calloc(args.iterations, sizeof(struct ELLPACK)));
+        // struct ELLPACK* res_lpks = abortIfNULL(calloc(args.iterations, sizeof(struct ELLPACK)));
 
         clock_gettime(CLOCK_MONOTONIC, &start);
 
@@ -113,8 +112,7 @@ int main(int argc, char** argv) {
 
         clock_gettime(CLOCK_MONOTONIC, &end);
 
-        elapsed_time = (end.tv_sec - start.tv_sec - args.iterations) * 1.0e9 +
-            (end.tv_nsec - start.tv_nsec);
+        elapsed_time = (end.tv_sec - start.tv_sec - args.iterations) * 1.0e9 + (end.tv_nsec - start.tv_nsec);
         printf("Average elapsed time per iteration: %.6f seconds\n", elapsed_time / args.iterations / 1.0e9);
 
     } else {

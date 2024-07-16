@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-#
-# $1: csv file to open
+
+"""Usage:
+    plot_data.py <csv file to open>
+"""
 
 import sys
 import matplotlib.pyplot as plt
@@ -16,7 +18,7 @@ if len(sys.argv) == 1:
             l = l.strip()
             if l == "":
                 break
-            l = l.removeprefix('#').strip()
+            l = l.removeprefix("#").strip()
             if l != "":
                 print(f"  - {l}")
     sys.exit(0)
@@ -28,12 +30,12 @@ def main():
     df = pd.read_csv(file)
     print(df)
 
-    cmap = ListedColormap(['#0343df', '#e50000', '#ffff14', '#929591'])
-    ax = df.plot.bar(x='tests', colormap=cmap)
+    cmap = ListedColormap(["#0343df", "#e50000", "#ffff14", "#929591"])
+    ax = df.plot.bar(x="tests", colormap=cmap)
 
     ax.set_xlabel(None)
-    ax.set_ylabel('time')
-    ax.set_title('benchmark')
+    ax.set_ylabel("time")
+    ax.set_title("benchmark")
 
     plt.show()
 

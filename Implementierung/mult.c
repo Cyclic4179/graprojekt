@@ -1,6 +1,7 @@
 #include "mult.h"
-#include "util.h"
+
 #include "ellpack.h"
+#include "util.h"
 
 /// @brief main multiplication, first version
 /// @param a Pointer to left matrix
@@ -12,20 +13,21 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
-    //########################################## calculation of actual values ##########################################
+    /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
-        for (uint64_t l = 0; l < right.noCols; l++) { // Iterates over the columns in the right matrix
+    for (uint64_t i = 0; i < left.noRows; i++) {       // Iterates over the rows of left
+        for (uint64_t l = 0; l < right.noCols; l++) {  // Iterates over the columns in the right matrix
 
-            float sum = 0.f; // accumulator for an entry in result
-            for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
+            float sum = 0.f;                                    // accumulator for an entry in result
+            for (uint64_t j = 0; j < left.maxNoNonZero; j++) {  // Iterates over a row of left
 
                 // leftColRightRow is the column index of the left and row index of the right matrix
                 uint64_t leftColRightRow = left.indices[i * left.maxNoNonZero + j];
                 // Iterates over the column of right to check if row of right has entry for that position
-                for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero; k++) {
+                for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero;
+                     k++) {
                     if (right.indices[k] == l) {
                         sum += left.values[i * left.maxNoNonZero + j] * right.values[k];
                     }
@@ -58,7 +60,8 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     result = initialize_result(left, right, result);
     *(struct ELLPACK*)res = result;
 
-    float* sum = malloc(right.noCols * sizeof(float));  // stores the products af a row of left with all columns of right
+    float* sum =
+        malloc(right.noCols * sizeof(float));  // stores the products af a row of left with all columns of right
     if (sum == NULL) {
         free(result.values);
         free(result.indices);
@@ -66,21 +69,22 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
         exit(EXIT_FAILURE);
     }
 
-    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
     for (uint64_t j = 0; j < right.noCols; j++) {
         sum[j] = 0.0;
     }
 
-    //########################################## calculation of actual values ##########################################
+    /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < left.noRows; i++) { // Iterates over the rows of left
-        for (uint64_t j = 0; j < left.maxNoNonZero; j++) { // Iterates over a row of left
+    for (uint64_t i = 0; i < left.noRows; i++) {            // Iterates over the rows of left
+        for (uint64_t j = 0; j < left.maxNoNonZero; j++) {  // Iterates over a row of left
             uint64_t leftAccessIndex = i * left.maxNoNonZero + j;
             // leftColRightRow is the column index of the left and row index of the right matrix
             uint64_t leftColRightRow = left.indices[leftAccessIndex];
 
             // Iterates over the row of right
-            for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero; k++) {
+            for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero;
+                 k++) {
                 sum[right.indices[k]] += left.values[leftAccessIndex] * right.values[k];
             }
         }
@@ -109,24 +113,22 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     struct ELLPACK result;
     result = initialize_result(left, right, result);
     right = transpose(right);
-    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
-    //########################################## calculation of actual values ##########################################
+    /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
-        for (uint64_t j = 0; j < right.noRows; j++) { // Iterates over the columns in the right matrix
-            float sum = 0.f; // accumulator for an entry in result
+    for (uint64_t i = 0; i < left.noRows; i++) {       // Iterates over the rows of left
+        for (uint64_t j = 0; j < right.noRows; j++) {  // Iterates over the columns in the right matrix
+            float sum = 0.f;                           // accumulator for an entry in result
             uint64_t leftRowPointer = left.maxNoNonZero * i;
             uint64_t rightRowPointer = right.maxNoNonZero * j;
 
             while (leftRowPointer < left.maxNoNonZero * (i + 1) && rightRowPointer < right.maxNoNonZero * (j + 1)) {
                 if (left.indices[leftRowPointer] < right.indices[rightRowPointer]) {
                     leftRowPointer++;
-                }
-                else if (left.indices[leftRowPointer] > right.indices[rightRowPointer]) {
+                } else if (left.indices[leftRowPointer] > right.indices[rightRowPointer]) {
                     rightRowPointer++;
-                }
-                else {
+                } else {
                     sum += left.values[leftRowPointer++] * right.values[rightRowPointer++];
                 }
             }
@@ -152,13 +154,13 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
     struct DENSE_MATRIX left = to_dense(*(struct ELLPACK*)a);
     struct DENSE_MATRIX right = to_dense(*(struct ELLPACK*)b);
-    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
-    //########################################## calculation of actual values ##########################################
+    /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
-        for (uint64_t j = 0; j < right.noCols; j++) { // Iterates over the columns in the right matrix
-            float sum = 0.f; // accumulator for an entry in result
+    for (uint64_t i = 0; i < left.noRows; i++) {       // Iterates over the rows of left
+        for (uint64_t j = 0; j < right.noCols; j++) {  // Iterates over the columns in the right matrix
+            float sum = 0.f;                           // accumulator for an entry in result
 
             for (uint64_t k = 0; k < left.noCols; k++) {
                 sum += left.values[i * left.noCols + k] * right.values[k * right.noCols + j];
@@ -185,13 +187,13 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
     struct DENSE_MATRIX_XMM left = to_XMM(to_dense(*(struct ELLPACK*)a));
     struct DENSE_MATRIX_XMM right = to_XMM(to_dense(transpose(*(struct ELLPACK*)b)));
-    uint64_t resultPos = 0;                  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
-    //########################################## calculation of actual values ##########################################
+    /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < left.noRows; i++) {// Iterates over the rows of left
-        for (uint64_t j = 0; j < right.noRows; j++) { // Iterates over the columns in the right matrix
-            __m128 sum = _mm_setzero_ps(); // accumulator for an entry in result
+    for (uint64_t i = 0; i < left.noRows; i++) {       // Iterates over the rows of left
+        for (uint64_t j = 0; j < right.noRows; j++) {  // Iterates over the columns in the right matrix
+            __m128 sum = _mm_setzero_ps();             // accumulator for an entry in result
 
             for (uint64_t k = 0; k < left.noQuadCols; k++) {
                 sum += left.values[i * left.noQuadCols + k] * right.values[j * right.noQuadCols + k];
@@ -222,12 +224,14 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
 }
 
 // TODO: free matrices when invalid
-/// @brief check for valid inputs: multiplicable dimensions, no indices larger than matrix dimensions and only ascending indices
+/// @brief check for valid inputs: multiplicable dimensions,
+///        no indices larger than matrix dimensions and only ascending indices
 /// @param left left matrix
 /// @param right right matrix
 void validate_inputs(struct ELLPACK left, struct ELLPACK right) {
     if (left.noCols != right.noRows) {
-        fprintf(stderr, "Error: the given matrices do not have multiplicable dimensions: %lux%lu * %lux%lu\n", left.noRows, left.noCols, right.noRows, right.noCols);
+        fprintf(stderr, "Error: the given matrices do not have multiplicable dimensions: %lux%lu * %lux%lu\n",
+                left.noRows, left.noCols, right.noRows, right.noCols);
         exit(EXIT_FAILURE);
     }
     validate_matrix(left);
@@ -244,14 +248,18 @@ void validate_matrix(struct ELLPACK matrix) {
         for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
             uint64_t accessIndex = i * matrix.maxNoNonZero + j;
             if (matrix.indices[accessIndex] >= matrix.noCols) {
-                fprintf(stderr, "ERROR: Index %lu too large for a %lux%lu matrix.\n", matrix.indices[accessIndex], matrix.noRows, matrix.noCols);
+                fprintf(stderr, "ERROR: Index %lu too large for a %lux%lu matrix.\n", matrix.indices[accessIndex],
+                        matrix.noRows, matrix.noCols);
                 exit(EXIT_FAILURE);
             }
             if (padding == 0 && matrix.indices[accessIndex] == 0 && matrix.values[accessIndex] == 0.f) {
                 padding = 1;
             }
             if (matrix.indices[accessIndex] <= index && j != 0 && padding == 0) {
-                fprintf(stderr, "ERROR: Indices not in ascending order in row %lu at index %lu: index %lu not greater than previous index %lu.\n", i, j, matrix.indices[accessIndex], matrix.indices[accessIndex - 1]);
+                fprintf(stderr,
+                        "ERROR: Indices not in ascending order in row %lu at index %lu: index %lu not greater than "
+                        "previous index %lu.\n",
+                        i, j, matrix.indices[accessIndex], matrix.indices[accessIndex - 1]);
                 exit(EXIT_FAILURE);
             }
             index = matrix.indices[accessIndex];
@@ -267,7 +275,9 @@ void validate_matrix(struct ELLPACK matrix) {
 struct ELLPACK initialize_result(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result) {
     result.noRows = left.noRows;
     result.noCols = right.noCols;
-    result.maxNoNonZero = (right.noCols > left.maxNoNonZero * right.maxNoNonZero) ? left.maxNoNonZero * right.maxNoNonZero : right.noCols; //Proven by Pierre that this limit is correct
+    result.maxNoNonZero = (right.noCols > left.maxNoNonZero * right.maxNoNonZero)
+                              ? left.maxNoNonZero * right.maxNoNonZero
+                              : right.noCols;  // Proven by Pierre that this limit is correct
     result.values = (float*)malloc(result.noRows * result.maxNoNonZero * sizeof(float));
     result.indices = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
     if (result.values == NULL || result.indices == NULL) {
@@ -411,7 +421,9 @@ struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
     }
     for (uint64_t i = 0; i < result.noRows; i++) {
         for (uint64_t j = 0; j < noQuadCol - 1; j++) {
-            result.values[i * noQuadCol + j] = _mm_set_ps(matrix.values[i * matrix.noCols + 4 * j], matrix.values[i * matrix.noCols + 4 * j + 1], matrix.values[i * matrix.noCols + 4 * j + 2], matrix.values[i * matrix.noCols + 4 * j + 3]);
+            result.values[i * noQuadCol + j] =
+                _mm_set_ps(matrix.values[i * matrix.noCols + 4 * j], matrix.values[i * matrix.noCols + 4 * j + 1],
+                           matrix.values[i * matrix.noCols + 4 * j + 2], matrix.values[i * matrix.noCols + 4 * j + 3]);
         }
         float f1 = matrix.values[i * matrix.noCols + 4 * noQuadCol - 4];
         float f2 = (4 * noQuadCol - 3 >= matrix.noCols) ? 0.f : matrix.values[i * matrix.noCols + 4 * noQuadCol - 3];
@@ -437,18 +449,18 @@ void debug_info(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result
 /// @param matrix matrix to output
 void debug_info_single(char c, struct ELLPACK matrix) {
     switch (c) {
-    case 'l':
-        pdebug("== left ==\n");
-        break;
-    case 'r':
-        pdebug("== right ==\n");
-        break;
-    case 'o':
-        pdebug("== result ==\n");
-        break;
-    default:
-        pdebug("== matrix ==\n");
-        break;
+        case 'l':
+            pdebug("== left ==\n");
+            break;
+        case 'r':
+            pdebug("== right ==\n");
+            break;
+        case 'o':
+            pdebug("== result ==\n");
+            break;
+        default:
+            pdebug("== matrix ==\n");
+            break;
     }
     pdebug("%lu, %lu, %lu\n", matrix.noRows, matrix.noCols, matrix.maxNoNonZero);
     for (uint64_t i = 0; i < matrix.noRows * matrix.maxNoNonZero; i++) {
@@ -461,16 +473,16 @@ void debug_info_single(char c, struct ELLPACK matrix) {
     pdebug_("\n");
 }
 
-void debug_XMM(struct DENSE_MATRIX_XMM matrix){
+void debug_XMM(struct DENSE_MATRIX_XMM matrix) {
     pdebug("%lu, %lu, %lu\n", matrix.noRows, matrix.noCols, matrix.noQuadCols);
-    for(uint64_t i = 0; i < matrix.noRows; i++) {
-        for(uint64_t j = 0; j < matrix.noQuadCols; j++) {
+    for (uint64_t i = 0; i < matrix.noRows; i++) {
+        for (uint64_t j = 0; j < matrix.noQuadCols; j++) {
             __m128 value = matrix.values[i * matrix.noQuadCols + j];
             float f1 = _mm_cvtss_f32(value);
             value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
             float f2 = _mm_cvtss_f32(value);
             value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
-            float f3= _mm_cvtss_f32(value);
+            float f3 = _mm_cvtss_f32(value);
             value = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(value), 4));
             float f4 = _mm_cvtss_f32(value);
             pdebug("%f, %f, %f, %f, ", f4, f3, f2, f1);
@@ -487,23 +499,23 @@ void debug_XMM(struct DENSE_MATRIX_XMM matrix){
  *      ./tests/generate_input.py
  */
 
- /*
-  * Step 1: read matrices
-  * Step 2: make sure everything is valid
-  *      Sample Format:
-  *      LINE|   CONTENT
-  *      1   |   <noRows>,<noCols>,<noNonZero>
-  *      2   |   <values>
-  *      3   |   <indices>
-  *
-  *      The input Files are in a right format: values comma separated, only floats (no int, letters, etc.)
-  *      The output File is large enough to store the result
-  *      The matrices are have valid dimensions that are >= 1 and can be multiplied
-  *      The matrices fulfill the conditions:
-  *          noRows * noNonZeros = values.length     (amount of Floats in values)
-  *          noRows * noNonZeros = indices.length     (amount of Floats in indices)
-  *          at every index where values has padding (*), indices must have padding and vice versa
-  *          every row starts with (noNonZero - x) non-paddings (valid floats), followed by x paddings
-  *              no padding is followed by a value in the same row
-  * Step 3: the actual matrix multiplication
-  */
+/*
+ * Step 1: read matrices
+ * Step 2: make sure everything is valid
+ *      Sample Format:
+ *      LINE|   CONTENT
+ *      1   |   <noRows>,<noCols>,<noNonZero>
+ *      2   |   <values>
+ *      3   |   <indices>
+ *
+ *      The input Files are in a right format: values comma separated, only floats (no int, letters, etc.)
+ *      The output File is large enough to store the result
+ *      The matrices are have valid dimensions that are >= 1 and can be multiplied
+ *      The matrices fulfill the conditions:
+ *          noRows * noNonZeros = values.length     (amount of Floats in values)
+ *          noRows * noNonZeros = indices.length     (amount of Floats in indices)
+ *          at every index where values has padding (*), indices must have padding and vice versa
+ *          every row starts with (noNonZero - x) non-paddings (valid floats), followed by x paddings
+ *              no padding is followed by a value in the same row
+ * Step 3: the actual matrix multiplication
+ */

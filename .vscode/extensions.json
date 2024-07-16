@@ -3,6 +3,9 @@
         "ms-vscode.cpptools-extension-pack",
         "streetsidesoftware.code-spell-checker",
         "eamodio.gitlens",
-        "stannum.stannum-makefile-syntax"
+        "stannum.stannum-makefile-syntax",
+        "xaver.clang-format",
+        "ms-python.black-formatter",
+        "ms-python.python"
     ]
 }
