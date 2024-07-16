@@ -61,13 +61,7 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = result;
 
     float* sum =
-        malloc(right.noCols * sizeof(float));  // stores the products af a row of left with all columns of right
-    if (sum == NULL) {
-        free(result.values);
-        free(result.indices);
-        fprintf(stderr, "Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
+        abortIfNULL(malloc(right.noCols * sizeof(float)));  // stores the products af a row of left with all columns of right
 
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
     for (uint64_t j = 0; j < right.noCols; j++) {
@@ -278,19 +272,8 @@ struct ELLPACK initialize_result(struct ELLPACK left, struct ELLPACK right, stru
     result.maxNoNonZero = (right.noCols > left.maxNoNonZero * right.maxNoNonZero)
                               ? left.maxNoNonZero * right.maxNoNonZero
                               : right.noCols;  // Proven by Pierre that this limit is correct
-    result.values = (float*)malloc(result.noRows * result.maxNoNonZero * sizeof(float));
-    result.indices = (uint64_t*)malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t));
-    if (result.values == NULL || result.indices == NULL) {
-        if (result.values != NULL) {
-            free(result.values);
-            fprintf(stderr, "Error allocating memory");
-        }
-        if (result.indices != NULL) {
-            free(result.indices);
-            fprintf(stderr, "Error allocating memory");
-        }
-        exit(EXIT_FAILURE);
-    }
+    result.values = (float*)abortIfNULL(malloc(result.noRows * result.maxNoNonZero * sizeof(float)));
+    result.indices = (uint64_t*)abortIfNULL(malloc(result.noRows * result.maxNoNonZero * sizeof(uint64_t)));
     return result;
 }
 
@@ -350,19 +333,8 @@ struct ELLPACK transpose(struct ELLPACK matrix) {
         }
     }
     trans.maxNoNonZero = max;
-    trans.values = (float*)malloc(trans.noRows * trans.maxNoNonZero * sizeof(float));
-    trans.indices = (uint64_t*)malloc(trans.noRows * trans.maxNoNonZero * sizeof(uint64_t));
-    if (trans.values == NULL || trans.indices == NULL) {
-        if (trans.values != NULL) {
-            free(trans.values);
-            fprintf(stderr, "Error allocating memory");
-        }
-        if (trans.indices != NULL) {
-            free(trans.indices);
-            fprintf(stderr, "Error allocating memory");
-        }
-        exit(EXIT_FAILURE);
-    }
+    trans.values = (float*)abortIfNULL(malloc(trans.noRows * trans.maxNoNonZero * sizeof(float)));
+    trans.indices = (uint64_t*)abortIfNULL(malloc(trans.noRows * trans.maxNoNonZero * sizeof(uint64_t)));
 
     uint64_t tpointer = 0;
     uint64_t index;
@@ -389,11 +361,7 @@ struct DENSE_MATRIX to_dense(struct ELLPACK matrix) {
     struct DENSE_MATRIX result;
     result.noRows = matrix.noRows;
     result.noCols = matrix.noCols;
-    result.values = (float*)malloc(result.noRows * result.noCols * sizeof(float));
-    if (result.values == NULL) {
-        fprintf(stderr, "Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
+    result.values = (float*)abortIfNULL(malloc(result.noRows * result.noCols * sizeof(float)));
     for (uint64_t i = 0; i < result.noRows; i++) {
         uint64_t matrixPointer = i * matrix.maxNoNonZero;
         uint64_t matrixPLimit = matrixPointer + matrix.maxNoNonZero;
@@ -415,11 +383,7 @@ struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
     result.noCols = matrix.noCols;
     uint64_t noQuadCol = (matrix.noCols + 3) / 4;  // (x + 3) / 4 = ceil(x/4)
     result.noQuadCols = noQuadCol;
-    result.values = (__m128*)malloc(result.noRows * noQuadCol * sizeof(__m128));
-    if (result.values == NULL) {
-        fprintf(stderr, "Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
+    result.values = (__m128*)abortIfNULL(malloc(result.noRows * noQuadCol * sizeof(__m128)));
     for (uint64_t i = 0; i < result.noRows; i++) {
         for (uint64_t j = 0; j < noQuadCol - 1; j++) {
             result.values[i * noQuadCol + j] =
