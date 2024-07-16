@@ -1,18 +1,18 @@
-#include <stdbool.h>
+#include "parseargs.h"
+
+#include <errno.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #include "mult.h"
 #include "time.h"
-#include "parseargs.h"
 
+const char* usage_msg = "Usage: %s [options] [-]\n";
 
-const char* usage_msg =
-    "Usage: %s [options] [-]\n";
-
+// clang-format off
 const char* help_msg =
     "\n"
     "Optional arguments:\n"
@@ -31,10 +31,9 @@ const char* help_msg =
     "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
     "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
     "%s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
+// clang-format on
 
-void print_usage(const char* pname) {
-    fprintf(stderr, usage_msg, pname, pname, pname);
-}
+void print_usage(const char* pname) { fprintf(stderr, usage_msg, pname, pname, pname); }
 
 void print_help(const char* pname) {
     print_usage(pname);
@@ -87,8 +86,8 @@ struct ARGS parse_args(int argc, char** argv) {
 
     int opt;
     struct ARGS parsed_args;
-    parsed_args.a = NULL,
-    parsed_args.b = NULL,
+    parsed_args.a = NULL;
+    parsed_args.b = NULL;
     parsed_args.out = NULL;
     parsed_args.impl_version = 0;
     parsed_args.timeit = false;
@@ -97,8 +96,7 @@ struct ARGS parse_args(int argc, char** argv) {
     parsed_args.eq_max_diff = 1;
 
     static struct option long_opts[] = {
-        {"help",    no_argument,    NULL,   'h'},
-        {0, 0, 0, 0} // required (man 3 getopt_long)
+        {"help", no_argument, NULL, 'h'}, {0, 0, 0, 0}  // required (man 3 getopt_long)
     };
 
     while ((opt = getopt_long(argc, argv, "V:B::a:b:o:he::x", long_opts, NULL)) != -1) {
@@ -135,7 +133,7 @@ struct ARGS parse_args(int argc, char** argv) {
                 parsed_args.check_equal = true;
                 if (optarg) {
                     parsed_args.eq_max_diff = parse_float('e', pname);
-                    if (parsed_args.eq_max_diff< 0) {
+                    if (parsed_args.eq_max_diff < 0) {
                         fprintf(stderr, "invalid max diff: %d\n", parsed_args.iterations);
                         print_usage(pname);
                         exit(EXIT_FAILURE);

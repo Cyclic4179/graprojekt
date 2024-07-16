@@ -1,12 +1,11 @@
 #ifndef GUARD_MULT
 #define GUARD_MULT
 
-#include <stdlib.h>
+#include <pmmintrin.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <xmmintrin.h>
-#include <pmmintrin.h>
-
 
 #define MAX_IMPL_VERSION 4
 

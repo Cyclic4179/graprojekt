@@ -7,12 +7,12 @@
 /// @param f float value to convert
 void ftostr(size_t n, char s[n], float f) {
     int i = snprintf(s, n, "%.6f", f);
-    for (int j = i-1; j >= 0; j--) {
+    for (int j = i - 1; j >= 0; j--) {
         if (s[j] != '0') {
             if (s[j] == '.') {
                 s[j] = 0;
             } else {
-                s[j+1] = 0;
+                s[j + 1] = 0;
             }
             break;
         }

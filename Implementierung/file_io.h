@@ -1,10 +1,9 @@
 #ifndef GUARD_FILE_IO
 #define GUARD_FILE_IO
 
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
@@ -15,9 +14,5 @@ struct ELLPACK elpk_read_validate(FILE* file);
 /// @param matrix matrix to convert
 /// @param result pointer to file
 void elpk_write(struct ELLPACK matrix, FILE* file);
-
-/// @brief tests the function `matr_mult_ellpack`
-/// @param nr test in `./sample-inputs/` to execute
-//void test(int nr);
 
 #endif

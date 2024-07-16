@@ -7,6 +7,8 @@ build/
 main
 **/generated/*
 !**/generated/.gitkeep
+.venv/
+*.csv
 
 #
 # clion
@@ -170,3 +172,8 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+#
+# overrides
+#
+!.vscode/c_cpp_properties.json

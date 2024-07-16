@@ -29,6 +29,7 @@
               scipy
               pandas
               pandas-stubs
+              docopt
             ]);
           shellHook = ''
             #export PYTHONPATH=$PYTHONPATH:${makePythonPath packages}
