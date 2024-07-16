@@ -3,11 +3,11 @@
 #include "ellpack.h"
 #include "util.h"
 
-/// @brief main multiplication, first version
+/// @brief second version, searching corresponding values in right matrix for every entry in left matrix
 /// @param a Pointer to left matrix
 /// @param b Pointer to right matrix
 /// @param res Pointer to result of multiplication
-void matr_mult_ellpack(const void* a, const void* b, void* res) {
+void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     const struct ELLPACK left = *(struct ELLPACK*)a;
     const struct ELLPACK right = *(struct ELLPACK*)b;
     validate_inputs(left, right);
@@ -33,7 +33,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
                     }
                 }
             }
-            // set value of result to calculated product
+            // set the value of result to calculated product
             if (sum != 0.0) {
                 result.indices[resultPos] = l;
                 result.values[resultPos++] = sum;
@@ -48,23 +48,19 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
-/// @brief main multiplication, second version
-/// @param a Pointer to left matrix
-/// @param b Pointer to right matrix
-/// @param res Pointer to result of multiplication
-void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
+/// @brief first and main version, optimized seach for corresponding value in right matrix compared to second version
+void matr_mult_ellpack(const void* a, const void* b, void* res) {
     const struct ELLPACK left = *(struct ELLPACK*)a;
     const struct ELLPACK right = *(struct ELLPACK*)b;
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    *(struct ELLPACK*)res = result;
 
     float* sum =
-        abortIfNULL(malloc(right.noCols * sizeof(float)));  // stores the products af a row of left with all columns of right
+        abortIfNULL(malloc(right.noCols * sizeof(float)));  // stores the products of a row of left with all columns of right
 
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
-    for (uint64_t j = 0; j < right.noCols; j++) {
+    for (uint64_t j = 0; j < right.noCols; j++) {  // initialize all values with 0
         sum[j] = 0.0;
     }
 
@@ -76,13 +72,13 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
             // leftColRightRow is the column index of the left and row index of the right matrix
             uint64_t leftColRightRow = left.indices[leftAccessIndex];
 
-            // Iterates over the row of right
+            // Iterates over the row of right for which left has a non-zero entry and adds the product to the array
             for (uint64_t k = leftColRightRow * right.maxNoNonZero; k < (leftColRightRow + 1) * right.maxNoNonZero;
                  k++) {
                 sum[right.indices[k]] += left.values[leftAccessIndex] * right.values[k];
             }
         }
-        // set value of result to calculated product
+        // set the values of result to calculated products: iterates over and fills a complete row in result
         for (uint64_t j = 0; j < right.noCols; j++) {
             if (sum[j] != 0.0) {
                 result.indices[resultPos] = j;
@@ -100,6 +96,7 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
+/// @brief third version, working on transposed right matrix for better cache compatibility,
 void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     const struct ELLPACK left = *(struct ELLPACK*)a;
     struct ELLPACK right = *(struct ELLPACK*)b;
@@ -117,6 +114,7 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
             uint64_t leftRowPointer = left.maxNoNonZero * i;
             uint64_t rightRowPointer = right.maxNoNonZero * j;
 
+            // Iterates over the rows of the (transposed) matrices, incrementing the pointer with the lower Index
             while (leftRowPointer < left.maxNoNonZero * (i + 1) && rightRowPointer < right.maxNoNonZero * (j + 1)) {
                 if (left.indices[leftRowPointer] < right.indices[rightRowPointer]) {
                     leftRowPointer++;
@@ -142,12 +140,13 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
+/// @brief fourth version, working on a dense matrix, for almost dense matrices more memory efficient and simpler
 void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
-    struct DENSE_MATRIX left = to_dense(*(struct ELLPACK*)a);
-    struct DENSE_MATRIX right = to_dense(*(struct ELLPACK*)b);
+    const struct DENSE_MATRIX left = to_dense(*(struct ELLPACK*)a);
+    const struct DENSE_MATRIX right = to_dense(*(struct ELLPACK*)b);
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
     /* -------------------- calculation of actual values -------------------- */
@@ -175,12 +174,13 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
+/// @brief fifth version, optimized for fast almost-dense matrices multiplication by using SIMD with Intrinsics
 void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
-    struct DENSE_MATRIX_XMM left = to_XMM(to_dense(*(struct ELLPACK*)a));
-    struct DENSE_MATRIX_XMM right = to_XMM(to_dense(transpose(*(struct ELLPACK*)b)));
+    const struct DENSE_MATRIX_XMM left = to_XMM(to_dense(*(struct ELLPACK*)a));
+    const struct DENSE_MATRIX_XMM right = to_XMM(to_dense(transpose(*(struct ELLPACK*)b)));
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
     /* -------------------- calculation of actual values -------------------- */
@@ -227,9 +227,9 @@ void validate_inputs(struct ELLPACK left, struct ELLPACK right) {
 
 /// @brief check for no indices larger than matrix dimensions and only ascending indices
 /// @param matrix matrix to check
-void validate_matrix(struct ELLPACK matrix) {
+void validate_matrix(const struct ELLPACK matrix) {
     uint64_t index = 0;
-    int padding;
+    int padding;  // works as boolean to check if padded value was found
     for (uint64_t i = 0; i < matrix.noRows; i++) {
         padding = 0;
         for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
@@ -259,7 +259,7 @@ void validate_matrix(struct ELLPACK matrix) {
 /// @param right right matrix
 /// @param result result matrix
 /// @result initialized result matrix
-struct ELLPACK initialize_result(struct ELLPACK left, struct ELLPACK right, struct ELLPACK result) {
+struct ELLPACK initialize_result(const struct ELLPACK left, const struct ELLPACK right, struct ELLPACK result) {
     result.noRows = left.noRows;
     result.noCols = right.noCols;
     result.maxNoNonZero = (right.noCols > left.maxNoNonZero * right.maxNoNonZero)
@@ -308,7 +308,7 @@ struct ELLPACK remove_unnecessary_padding(struct ELLPACK result) {
 }
 
 /// @brief transposes the given matrix and returns the result
-struct ELLPACK transpose(struct ELLPACK matrix) {
+struct ELLPACK transpose(const struct ELLPACK matrix) {
     struct ELLPACK trans;
     trans.noRows = matrix.noCols;
     trans.noCols = matrix.noRows;
@@ -350,7 +350,7 @@ struct ELLPACK transpose(struct ELLPACK matrix) {
 }
 
 /// @brief transforms a sparse matrix of ELLPACK format to a dense matrix and returns it
-struct DENSE_MATRIX to_dense(struct ELLPACK matrix) {
+struct DENSE_MATRIX to_dense(const struct ELLPACK matrix) {
     struct DENSE_MATRIX result;
     result.noRows = matrix.noRows;
     result.noCols = matrix.noCols;
@@ -370,7 +370,7 @@ struct DENSE_MATRIX to_dense(struct ELLPACK matrix) {
 }
 
 /// @brief transforms the values of the given dense matrix into XMM float values
-struct DENSE_MATRIX_XMM to_XMM(struct DENSE_MATRIX matrix) {
+struct DENSE_MATRIX_XMM to_XMM(const struct DENSE_MATRIX matrix) {
     struct DENSE_MATRIX_XMM result;
     result.noRows = matrix.noRows;
     result.noCols = matrix.noCols;
