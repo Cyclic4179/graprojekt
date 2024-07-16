@@ -386,8 +386,9 @@ struct DENSE_MATRIX to_dense(struct ELLPACK matrix) {
     }
     for (uint64_t i = 0; i < result.noRows; i++) {
         uint64_t matrixPointer = i * matrix.maxNoNonZero;
+        uint64_t matrixPLimit = matrixPointer + matrix.maxNoNonZero;
         for (uint64_t j = 0; j < result.noCols; j++) {
-            if (matrix.indices[matrixPointer] == j) {
+            if (matrix.indices[matrixPointer] == j && matrixPointer < matrixPLimit) {
                 result.values[i * result.noCols + j] = matrix.values[matrixPointer++];
             } else {
                 result.values[i * result.noCols + j] = 0.f;
