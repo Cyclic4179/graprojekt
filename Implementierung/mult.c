@@ -196,12 +196,6 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
             sum = _mm_hadd_ps(sum, sum);
             sum = _mm_hadd_ps(sum, sum);
             float fsum = _mm_cvtss_f32(sum);
-            /*sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
-            fsum += _mm_cvtss_f32(sum);
-            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
-            fsum += _mm_cvtss_f32(sum);
-            sum = _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(sum), 4));
-            fsum += _mm_cvtss_f32(sum);*/
             // set value of result to calculated product
             if (fsum != 0.0) {
                 result.indices[resultPos] = j;
@@ -217,7 +211,6 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
-// TODO: free matrices when invalid
 /// @brief check for valid inputs: multiplicable dimensions,
 ///        no indices larger than matrix dimensions and only ascending indices
 /// @param left left matrix
@@ -462,25 +455,4 @@ void debug_XMM(struct DENSE_MATRIX_XMM matrix) {
  *      ./main -a tests/generated/1/a -b tests/generated/1/b
  *      ./main -h
  *      ./tests/generate_input.py
- */
-
-/*
- * Step 1: read matrices
- * Step 2: make sure everything is valid
- *      Sample Format:
- *      LINE|   CONTENT
- *      1   |   <noRows>,<noCols>,<noNonZero>
- *      2   |   <values>
- *      3   |   <indices>
- *
- *      The input Files are in a right format: values comma separated, only floats (no int, letters, etc.)
- *      The output File is large enough to store the result
- *      The matrices are have valid dimensions that are >= 1 and can be multiplied
- *      The matrices fulfill the conditions:
- *          noRows * noNonZeros = values.length     (amount of Floats in values)
- *          noRows * noNonZeros = indices.length     (amount of Floats in indices)
- *          at every index where values has padding (*), indices must have padding and vice versa
- *          every row starts with (noNonZero - x) non-paddings (valid floats), followed by x paddings
- *              no padding is followed by a value in the same row
- * Step 3: the actual matrix multiplication
  */
