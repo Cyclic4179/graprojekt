@@ -76,6 +76,35 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
     }
 }
 
+/// @brief check for no indices larger than matrix dimensions and only ascending indices
+/// @param matrix matrix to check
+void validate_matrix(const struct ELLPACK matrix) {
+    uint64_t index = 0;
+    int padding;  // works as boolean to check if padded value was found
+    for (uint64_t i = 0; i < matrix.noRows; i++) {
+        padding = 0;
+        for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
+            uint64_t accessIndex = i * matrix.maxNoNonZero + j;
+            if (matrix.indices[accessIndex] >= matrix.noCols) {
+                fprintf(stderr, "ERROR: Index %lu too large for a %lux%lu matrix.\n", matrix.indices[accessIndex],
+                        matrix.noRows, matrix.noCols);
+                exit(EXIT_FAILURE);
+            }
+            if (padding == 0 && matrix.indices[accessIndex] == 0 && matrix.values[accessIndex] == 0.f) {
+                padding = 1;
+            }
+            if (matrix.indices[accessIndex] <= index && j != 0 && padding == 0) {
+                fprintf(stderr,
+                        "ERROR: Indices not in ascending order in row %lu at index %lu: index %lu not greater than "
+                        "previous index %lu.\n",
+                        i, j, matrix.indices[accessIndex], matrix.indices[accessIndex - 1]);
+                exit(EXIT_FAILURE);
+            }
+            index = matrix.indices[accessIndex];
+        }
+    }
+}
+
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
 /// @result matrix in ELLPACK format
@@ -118,6 +147,8 @@ struct ELLPACK elpk_read_validate(FILE* file) {
     }
 
     free(string);
+
+    validate_matrix(result);
 
     return result;
 }

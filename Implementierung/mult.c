@@ -56,10 +56,10 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     struct ELLPACK result;
     result = initialize_result(left, right, result);
 
-    float* sum =
-        abortIfNULL(malloc(right.noCols * sizeof(float)));  // stores the products of a row of left with all columns of right
+    // stores the products of a row of left with all columns of right
+    float* sum = abortIfNULL(malloc(right.noCols * sizeof(float)));
 
-    uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
+    uint64_t resultPos = 0;                        // pointer to next position to insert a value into result matrix
     for (uint64_t j = 0; j < right.noCols; j++) {  // initialize all values with 0
         sum[j] = 0.0;
     }
@@ -211,8 +211,7 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
-/// @brief check for valid inputs: multiplicable dimensions,
-///        no indices larger than matrix dimensions and only ascending indices
+/// @brief check for valid inputs: multiplicable dimensions
 /// @param left left matrix
 /// @param right right matrix
 void validate_inputs(struct ELLPACK left, struct ELLPACK right) {
@@ -220,37 +219,6 @@ void validate_inputs(struct ELLPACK left, struct ELLPACK right) {
         fprintf(stderr, "Error: the given matrices do not have multiplicable dimensions: %lux%lu * %lux%lu\n",
                 left.noRows, left.noCols, right.noRows, right.noCols);
         exit(EXIT_FAILURE);
-    }
-    validate_matrix(left);
-    validate_matrix(right);
-}
-
-/// @brief check for no indices larger than matrix dimensions and only ascending indices
-/// @param matrix matrix to check
-void validate_matrix(const struct ELLPACK matrix) {
-    uint64_t index = 0;
-    int padding;  // works as boolean to check if padded value was found
-    for (uint64_t i = 0; i < matrix.noRows; i++) {
-        padding = 0;
-        for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
-            uint64_t accessIndex = i * matrix.maxNoNonZero + j;
-            if (matrix.indices[accessIndex] >= matrix.noCols) {
-                fprintf(stderr, "ERROR: Index %lu too large for a %lux%lu matrix.\n", matrix.indices[accessIndex],
-                        matrix.noRows, matrix.noCols);
-                exit(EXIT_FAILURE);
-            }
-            if (padding == 0 && matrix.indices[accessIndex] == 0 && matrix.values[accessIndex] == 0.f) {
-                padding = 1;
-            }
-            if (matrix.indices[accessIndex] <= index && j != 0 && padding == 0) {
-                fprintf(stderr,
-                        "ERROR: Indices not in ascending order in row %lu at index %lu: index %lu not greater than "
-                        "previous index %lu.\n",
-                        i, j, matrix.indices[accessIndex], matrix.indices[accessIndex - 1]);
-                exit(EXIT_FAILURE);
-            }
-            index = matrix.indices[accessIndex];
-        }
     }
 }
 

@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ellpack.h"
+
+void validate_matrix(const struct ELLPACK matrix);
+
 /// @brief reads and validates a matrix
 /// @param file pointer to the file
 /// @result matrix in ELLPACK format
