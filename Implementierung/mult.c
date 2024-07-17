@@ -217,6 +217,68 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
+/// @brief sixth version, reduced seach cost on normal Ellpack matrices
+void matr_mult_ellpack_V5(const void* a, const void* b, void* res) {
+    const struct ELLPACK left = *(struct ELLPACK*)a;
+    const struct ELLPACK right = *(struct ELLPACK*)b;
+    validate_inputs(left, right);
+    struct ELLPACK result;
+    result = initialize_result(left, right, result);
+
+    // stores the index of the next entry to look at in the right matrix
+    uint64_t* nextRowEntry = (uint64_t*)abortIfNULL(malloc(right.noRows * sizeof(uint64_t)));
+    // stores the indices where to enter a value into result matrix for every row
+    uint64_t* resultRowPointers = (uint64_t*)abortIfNULL(malloc(result.noRows * sizeof(uint64_t)));
+
+    for (uint64_t i = 0; i < right.noRows; i++) {  // initialize all values to point to the first entry in each row
+        nextRowEntry[i] = i * right.maxNoNonZero;
+    }
+    for (uint64_t i = 0; i < result.noRows; i++) {  // initialize all values to point to the first entry in each row
+        resultRowPointers[i] = i * result.maxNoNonZero;
+    }
+    /* -------------------- calculation of actual values -------------------- */
+
+    for (uint64_t i = 0; i < right.noCols; i++) {     // Iterates over the columns of the right matrix
+        // update pointers to the next index greater or equal to the current i (right column index)
+        for (uint64_t j = 0; j < right.noRows; j++) {
+            while (right.indices[nextRowEntry[j]] < i && nextRowEntry[j] < (j + 1) * right.maxNoNonZero - 1) {
+                nextRowEntry[j] += 1;
+            }
+        }
+
+        for (uint64_t j = 0; j < left.noRows; j++) {  // Iterates over the rows of left
+
+            float sum = 0.f;                                    // accumulator for an entry in result
+            for (uint64_t k = 0; k < left.maxNoNonZero; k++) {  // Iterates over a row of left
+
+                // leftColRightRow is the column index of the left and row index of the right matrix
+                uint64_t leftColRightRow = left.indices[j * left.maxNoNonZero + k];
+
+                // if the next index the row of right is at the current column position: add product to sum
+                if (right.indices[nextRowEntry[leftColRightRow]] == i) {
+                    sum += left.values[j * left.maxNoNonZero + k] * right.values[nextRowEntry[leftColRightRow]];
+                }
+            }
+            // set the value of result to calculated product
+            if (sum != 0.0) {
+                result.indices[resultRowPointers[j]] = i;
+                result.values[resultRowPointers[j]] = sum;
+                resultRowPointers[j] += 1;
+            }
+        }
+    }
+    // add padding in all rows
+    for (uint64_t i = 0; i < result.noRows; i++) {
+        for (uint64_t j = resultRowPointers[i]; j < (i + 1) * result.maxNoNonZero; j++) {
+            result.indices[j] = 0;
+            result.values[j] = 0.f;
+        }
+    }
+    free(resultRowPointers);
+    free(nextRowEntry);
+    *(struct ELLPACK*)res = remove_unnecessary_padding(result);
+}
+
 /// @brief check for valid inputs: multiplicable dimensions
 /// @param left left matrix
 /// @param right right matrix
@@ -244,7 +306,7 @@ struct ELLPACK initialize_result(const struct ELLPACK left, const struct ELLPACK
     return result;
 }
 
-/// @brief remove unnecessary padding in the result matrix and // still TODO: free the unused memory
+/// @brief remove unnecessary padding in the result matrix and free the unused memory
 /// @param result result matrix
 /// @result smaller matrix
 struct ELLPACK remove_unnecessary_padding(struct ELLPACK result) {
@@ -278,6 +340,10 @@ struct ELLPACK remove_unnecessary_padding(struct ELLPACK result) {
         }
     }
     result.maxNoNonZero = realResultMaxNoNonZero;
+    if (result.noRows * result.maxNoNonZero != 0) {
+        result.values = (float*)abortIfNULL(realloc(result.values, result.noRows * result.maxNoNonZero * sizeof(float)));
+        result.indices = (uint64_t*)abortIfNULL(realloc(result.indices, result.noRows * result.maxNoNonZero * sizeof(uint64_t)));
+    }
     return result;
 }
 

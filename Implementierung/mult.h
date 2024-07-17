@@ -1,7 +1,7 @@
 #ifndef GUARD_MULT
 #define GUARD_MULT
 
-#define MAX_IMPL_VERSION 4
+#define MAX_IMPL_VERSION 5
 
 #include "ellpack.h"
 
@@ -23,6 +23,9 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res);
 /// @brief fifth version, optimized for fast almost-dense matrices multiplication by using SIMD with Intrinsics
 void matr_mult_ellpack_V4(const void* a, const void* b, void* res);
 
+/// @brief sixth version, reduced seach cost on normal Ellpack matrices
+void matr_mult_ellpack_V5(const void* a, const void* b, void* res);
+
 /// @brief check for valid inputs: multiplicable dimensions
 /// @param left left matrix
 /// @param right right matrix
@@ -35,7 +38,7 @@ void validate_inputs(struct ELLPACK left, struct ELLPACK right);
 /// @result initialized result matrix
 struct ELLPACK initialize_result(const struct ELLPACK left, const struct ELLPACK right, struct ELLPACK result);
 
-/// @brief remove unnecessary padding in the result matrix and // still TODO: free the unused memory
+/// @brief remove unnecessary padding in the result matrix and free the unused memory
 /// @param result result matrix
 /// @result smaller matrix
 struct ELLPACK remove_unnecessary_padding(struct ELLPACK result);

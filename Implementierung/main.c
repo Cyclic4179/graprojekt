@@ -41,6 +41,9 @@ int main(int argc, char** argv) {
         case 4:
             matr_mult_ellpack_ptr = matr_mult_ellpack_V4;
             break;
+        case 5:
+            matr_mult_ellpack_ptr = matr_mult_ellpack_V5;
+            break;
         default:
             abortIfNULL_msg(0, "fixme: missing function for impl version");
     }
