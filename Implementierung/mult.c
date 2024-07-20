@@ -273,7 +273,7 @@ void matr_mult_ellpack_V5(const void* a, const void* b, void* res) {
     }
     /* -------------------- calculation of actual values -------------------- */
 
-    for (uint64_t i = 0; i < right.noCols; i++) {     // Iterates over the columns of the right matrix
+    for (uint64_t i = 0; i < right.noCols; i++) {  // Iterates over the columns of the right matrix
         // update pointers to the next index greater or equal to the current i (right column index)
         for (uint64_t j = 0; j < right.noRows; j++) {
             while (nextRowEntry[j] < (j + 1) * right.maxNoNonZero - 1 && right.indices[nextRowEntry[j]] < i) {
@@ -376,8 +376,10 @@ struct ELLPACK remove_unnecessary_padding(struct ELLPACK result) {
     }
     result.maxNoNonZero = realResultMaxNoNonZero;
     if (result.noRows * result.maxNoNonZero != 0) {
-        result.values = (float*)abortIfNULL(realloc(result.values, result.noRows * result.maxNoNonZero * sizeof(float)));
-        result.indices = (uint64_t*)abortIfNULL(realloc(result.indices, result.noRows * result.maxNoNonZero * sizeof(uint64_t)));
+        result.values =
+            (float*)abortIfNULL(realloc(result.values, result.noRows * result.maxNoNonZero * sizeof(float)));
+        result.indices =
+            (uint64_t*)abortIfNULL(realloc(result.indices, result.noRows * result.maxNoNonZero * sizeof(uint64_t)));
     }
     return result;
 }
