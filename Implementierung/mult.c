@@ -19,6 +19,10 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
     /* -------------------- calculation of actual values -------------------- */
@@ -61,7 +65,10 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
     // stores the products of a row of left with all columns of right
     float* sum = (float*)abortIfNULL(malloc(right.noCols * sizeof(float)));
 
@@ -109,6 +116,10 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
     right = transpose(right);
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
@@ -143,6 +154,8 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
             result.indices[resultPos] = 0;
         }
     }
+    free(right.values);
+    free(right.indices);
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
@@ -151,6 +164,10 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
     const struct DENSE_MATRIX left = to_dense(*(struct ELLPACK*)a);
     const struct DENSE_MATRIX right = to_dense(*(struct ELLPACK*)b);
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
@@ -177,6 +194,8 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
             result.indices[resultPos] = 0;
         }
     }
+    free(left.values);
+    free(right.values);
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
@@ -185,8 +204,19 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
-    const struct DENSE_MATRIX_XMM left = to_XMM(to_dense(*(struct ELLPACK*)a));
-    const struct DENSE_MATRIX_XMM right = to_XMM(to_dense(transpose(*(struct ELLPACK*)b)));
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
+    const struct ELLPACK transposedRight = transpose(*(struct ELLPACK*)b);
+    const struct DENSE_MATRIX denseLeft = to_dense(*(struct ELLPACK*)a);
+    const struct DENSE_MATRIX denseRight = to_dense(transposedRight);
+    const struct DENSE_MATRIX_XMM left = to_XMM(denseLeft);
+    const struct DENSE_MATRIX_XMM right = to_XMM(denseRight);
+    free(transposedRight.values);
+    free(transposedRight.indices);
+    free(denseLeft.values);
+    free(denseRight.values);
     uint64_t resultPos = 0;  // pointer to next position to insert a value into result matrix
 
     /* -------------------- calculation of actual values -------------------- */
@@ -214,6 +244,8 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
             result.indices[resultPos] = 0;
         }
     }
+    free(left.values);
+    free(right.values);
     *(struct ELLPACK*)res = remove_unnecessary_padding(result);
 }
 
@@ -224,7 +256,10 @@ void matr_mult_ellpack_V5(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+        *(struct ELLPACK*)res = result;
+        return;
+    }
     // stores the index of the next entry to look at in the right matrix
     uint64_t* nextRowEntry = (uint64_t*)abortIfNULL(malloc(right.noRows * sizeof(uint64_t)));
     // stores the indices where to enter a value into result matrix for every row
@@ -241,7 +276,7 @@ void matr_mult_ellpack_V5(const void* a, const void* b, void* res) {
     for (uint64_t i = 0; i < right.noCols; i++) {     // Iterates over the columns of the right matrix
         // update pointers to the next index greater or equal to the current i (right column index)
         for (uint64_t j = 0; j < right.noRows; j++) {
-            while (right.indices[nextRowEntry[j]] < i && nextRowEntry[j] < (j + 1) * right.maxNoNonZero - 1) {
+            while (nextRowEntry[j] < (j + 1) * right.maxNoNonZero - 1 && right.indices[nextRowEntry[j]] < i) {
                 nextRowEntry[j] += 1;
             }
         }
@@ -399,7 +434,7 @@ struct DENSE_MATRIX to_dense(const struct ELLPACK matrix) {
         uint64_t matrixPointer = i * matrix.maxNoNonZero;
         uint64_t matrixPLimit = matrixPointer + matrix.maxNoNonZero;
         for (uint64_t j = 0; j < result.noCols; j++) {
-            if (matrix.indices[matrixPointer] == j && matrixPointer < matrixPLimit) {
+            if (matrixPointer < matrixPLimit && matrix.indices[matrixPointer] == j) {
                 result.values[i * result.noCols + j] = matrix.values[matrixPointer++];
             } else {
                 result.values[i * result.noCols + j] = 0.f;
