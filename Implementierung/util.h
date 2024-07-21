@@ -19,10 +19,12 @@ __attribute__((always_inline)) inline void* __abort_null(void* value, const char
 #define abortIfNULL(i) __abort_null(i, #i, __func__, __FILE__, __LINE__, "")
 #define abortIfNULL_msg(i, j) __abort_null(i, #i, __func__, __FILE__, __LINE__, j)
 
+
+#define DEBUG_OUTPUT_MAX_SIZE 200
+
 #ifdef DEBUG
 #define pdebug(...) fprintf(stderr, "DEBUG:    " __VA_ARGS__)
 #define pdebug_(...) fprintf(stderr, __VA_ARGS__)
-#define DEBUG_OUTPUT_MAX_SIZE 200
 #else
 #define pdebug(...)
 #define pdebug_(...)

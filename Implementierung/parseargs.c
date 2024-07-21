@@ -22,24 +22,25 @@ void print_help(const char* pname) {
         "\n"
         "Optional arguments:\n"
         "    -a PATH\n"
-        "    -b PATH     paths to ellpack matrix factor (if omitted: stdin, '\\n' separated)\n"
+        "    -b PATH     paths to ellpack matrix factors (if omitted: stdin, '\\n' separated)\n"
         "    -o PATH     path to result (if omitted: stdout)\n"
-        "    -V N        impl number (integer between 0 and %d, default: 0)\n"
+        "    -V N        impl number (integer between 0 and %d, default: %d)\n"
         "    -B\n"
-        "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: 1 iteration)\n"
-        "    -eF         parse files and print true if they are roughly equal (diff of entries < %d)\n"
+        "    -BN         time execution, N (positive) iterations (default: don't time; if set, no result will be printed to file; if N omitted: %d iterations)\n"
+        "    -e\n"
+        "    -eF         parse files and print true if they are roughly equal (diff of entries < %d or F (float))\n"
         "    -x          print max impl version to stdout and exit\n"
         "    -h, --help  Show help and exit\n"
         "\n"
         "Examples:\n"
-        "%s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
-        "%s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
-        "%s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
-        "%s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
+        "    %s -o result -a sample-inputs/2.txt <sample-inputs/2.txt\n"
+        "    %s - <sample-inputs/1.txt <sample-inputs/2.txt\n"
+        "    %s -V 0 -B <sample-inputs/1.txt <sample-inputs/2.txt\n"
+        "    %s -B9 -a sample-inputs/1.txt -b sample-inputs/2.txt\n";
     // clang-format on
 
     print_usage(pname);
-    fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_EQ_MAX_DIFF, pname, pname, pname, pname);
+    fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_IMPL_VERSION, DEFAULT_ITERATIONS, DEFAULT_EQ_MAX_DIFF, pname, pname, pname, pname);
 }
 
 float parse_float(char opt, const char* pname) {
@@ -87,15 +88,15 @@ struct ARGS parse_args(int argc, char** argv) {
     }
 
     int opt;
-    struct ARGS parsed_args;
-    parsed_args.a = NULL;
-    parsed_args.b = NULL;
-    parsed_args.out = NULL;
-    parsed_args.impl_version = 0;
-    parsed_args.timeit = false;
-    parsed_args.iterations = 1;
-    parsed_args.check_equal = false;
-    parsed_args.eq_max_diff = 1;
+    struct ARGS parsed_args = {
+        .a = NULL,
+        .b = NULL,
+        .out = NULL,
+        .impl_version = 0,
+        .action = MULT,
+        .iterations = 3,
+        .eq_max_diff = DEFAULT_EQ_MAX_DIFF
+    };
 
     static struct option long_opts[] = {
         {"help", no_argument, NULL, 'h'}, {0, 0, 0, 0}  // required (man 3 getopt_long)
@@ -112,7 +113,8 @@ struct ARGS parse_args(int argc, char** argv) {
                 }
                 break;
             case 'B':
-                parsed_args.timeit = true;
+                parsed_args.action = BENCH;
+                //parsed_args.timeit = true;
                 if (optarg) {
                     parsed_args.iterations = parse_int('B', pname);
                     if (parsed_args.iterations < 0) {
@@ -132,7 +134,7 @@ struct ARGS parse_args(int argc, char** argv) {
                 parsed_args.out = optarg;
                 break;
             case 'e':
-                parsed_args.check_equal = true;
+                parsed_args.action = CHECK_EQ;
                 if (optarg) {
                     parsed_args.eq_max_diff = parse_float('e', pname);
                     if (parsed_args.eq_max_diff < 0) {
@@ -144,7 +146,7 @@ struct ARGS parse_args(int argc, char** argv) {
                 break;
             case 'x':
                 printf("%d\n", MAX_IMPL_VERSION);
-                exit(0);
+                exit(EXIT_SUCCESS);
             case 'h':
                 print_help(pname);
                 exit(EXIT_SUCCESS);

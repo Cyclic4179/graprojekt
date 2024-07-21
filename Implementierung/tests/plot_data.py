@@ -12,15 +12,7 @@ from matplotlib.colors import ListedColormap
 
 if len(sys.argv) == 1:
     print("usage:")
-    with open(__file__, "r", encoding="ascii") as f:
-        next(f)
-        for l in f:
-            l = l.strip()
-            if l == "":
-                break
-            l = l.removeprefix("#").strip()
-            if l != "":
-                print(f"  - {l}")
+    print("    plot_data.py <csv file to open>")
     sys.exit(0)
 
 file = sys.argv[1]
@@ -34,8 +26,8 @@ def main():
     ax = df.plot.bar(x="tests", colormap=cmap)
 
     ax.set_xlabel(None)
-    ax.set_ylabel("time")
-    ax.set_title("benchmark")
+    ax.set_ylabel('time in s')
+    ax.set_title('benchmark')
 
     plt.show()
 

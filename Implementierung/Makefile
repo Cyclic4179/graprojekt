@@ -69,7 +69,7 @@ run: debug
 
 
 test: build
-	@(cd $(TESTS_DIR) ; ./test.sh $(realpath $(TARGET_EXEC)))
+	./tests/bench.py test ./$(TARGET_EXEC) -t ./tests/static -T 2
 
 
 clean:
