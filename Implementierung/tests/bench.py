@@ -3,7 +3,7 @@
 """Usage:
     bench.py test <executable> [<impl-ver>...] [options] [-p N -e FLOAT] -t PATH...
     bench.py bench <executable> [<impl-ver>...] [options] [-i N] -t PATH...
-    bench.py show <csv-file> [-s]
+    bench.py show <csv-file>... [-s]
 
 Options:
     -t PATH     dir with tests (eg: tests/generated)
@@ -60,7 +60,7 @@ class Opt:
     print_thresh: int = field(init=False)
 
     # show
-    csv_file: str = field(init=False)
+    csv_files: str = field(init=False)
     show_plot: bool = field(init=False)
 
 opt = Opt()
@@ -247,18 +247,23 @@ def test():
 
 
 def show():
-    df = pd.read_csv(opt.csv_file)
-    print(df)
+    files = sorted(opt.csv_files, key=natural_keys)
 
-    if opt.show_plot:
-        cmap = ListedColormap(["#0343df", "#e50000", "#ffff14", "#929591"])
-        ax = df.plot.bar(x="tests", colormap=cmap)
+    for f in files:
+        print(Path(f).name)
+        df = pd.read_csv(f)
+        print(df)
+        print("\n")
 
-        ax.set_xlabel(None)
-        ax.set_ylabel('time in s')
-        ax.set_title('benchmark')
+        if opt.show_plot:
+            cmap = ListedColormap(["#0343df", "#e50000", "#ffff14", "#929591", "#00ff5a", "#ffaa00"])
+            ax = df.plot.bar(x="tests", colormap=cmap)
 
-        plt.show()
+            ax.set_xlabel(None)
+            ax.set_ylabel('time in s')
+            ax.set_title('benchmark')
+
+            plt.show()
 
 
 def main():
@@ -279,7 +284,7 @@ def main():
     opt.print_thresh = int(args["-p"])
     opt.max_error = float(args["-e"])
 
-    opt.csv_file = args["<csv-file>"]
+    opt.csv_files = args["<csv-file>"]
     opt.show_plot = args["-s"]
 
     if len(opt.impl_versions) == 0 and opt.executable:
