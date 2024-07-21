@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """Usage:
-    gen_input_res.py [rd] [options]
+    gen_input_res.py rd [options]
+    gen_input_res.py [options]
 
 Options:
     -o PATH     destination dir, if not exists, will be created [default: generated]
@@ -131,7 +132,7 @@ def create(
     # TODO: maybe some argument to control sparsity
     assert no_non_zero <= m
 
-    a = lil_matrix((n, m), dtype=np.float32)
+    a = lil_matrix((n, m), dtype=np.float64)
 
     # index of row that will have max nonzero entries
     row_with_max = randint(0, n - 1)

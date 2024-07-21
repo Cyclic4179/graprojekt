@@ -26,16 +26,20 @@ void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
 
     for (uint64_t i = 0; i < a.noRows * a.maxNoNonZero; i++) {
         float absdiff = fabsf(a.values[i] - b.values[i]);
+        float abssum = fabsf(a.values[i] + b.values[i]);
 
-        if (absdiff > max_diff || a.indices[i] != b.indices[i]) {
+        float reldeviation = 1e6 * absdiff / abssum;
+
+        //if (absdiff > max_diff || a.indices[i] != b.indices[i]) {
+        if (reldeviation > max_diff || a.indices[i] != b.indices[i]) {
             ftostr(sizeof(s1), s1, a.values[i]);
             ftostr(sizeof(s2), s2, b.values[i]);
             ftostr(sizeof(s_max_diff), s_max_diff, max_diff);
 
             printf(
                 "values or index at entry '%lu' greater than "
-                "tolerated error (%s): diff %f: a(val: %s, rowind: %lu) vs b(val: %s, rowind: %lu) \n",
-                i, s_max_diff, absdiff, s1, a.indices[i], s2, b.indices[i]);
+                "tolerated error (%s): reldev %f: a(val: %s, rowind: %lu) vs b(val: %s, rowind: %lu) \n",
+                i, s_max_diff, reldeviation, s1, a.indices[i], s2, b.indices[i]);
 
             exit(EXIT_FAILURE);
         }

@@ -12,7 +12,7 @@ Options:
 Test:
     -T N        timeout after N seconds [default: 10]
     -p N        print thresh (don't print content of files more than N chars) [default: 200]
-    -e FLOAT    max error passed when testing [default: 0.001]
+    -e FLOAT    max error passed when testing [default: 1]
 Bench:
     -i N        iterations [default: 3]
 Show:
@@ -152,7 +152,7 @@ def exec_bench(a: Path, b: Path, impl_version: int) -> float:
 def exec_test(a: Path, b: Path, res: Path, impl_version: int):
     """execute test"""
     eprint(
-        f"run: {opt.executable} -a {a} -b {b} -V{impl_version} -B{opt.iterations}"
+        f"run: {opt.executable} -a {a} -b {b} -V{impl_version}"
     )
 
     try:
@@ -174,7 +174,7 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
         sys.exit(1)
 
     eprint(
-        f"check result: {opt.executable} -a {res} -e{opt.max_error} <<<$RESULT"
+        f"check result: {opt.executable} -a {res} -e{opt.max_error} <<<\"$RESULT\""
     )
 
     try:
@@ -263,7 +263,7 @@ def show():
 
 def main():
     args = docopt(__doc__)
-    print(args)
+    #print(args)
 
     opt.executable = args["<executable>"]
     opt.impl_versions = args["<impl-ver>"]
