@@ -30,7 +30,6 @@ void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
 
         float reldeviation = 1e6 * absdiff / abssum;
 
-        //if (absdiff > max_diff || a.indices[i] != b.indices[i]) {
         if (reldeviation > max_diff || a.indices[i] != b.indices[i]) {
             ftostr(sizeof(s1), s1, a.values[i]);
             ftostr(sizeof(s2), s2, b.values[i]);
