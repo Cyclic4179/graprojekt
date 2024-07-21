@@ -7,7 +7,7 @@
 
 Options:
     -t PATH     dir with tests (eg: tests/generated)
-    -b PATH     result dest dir, if not exists, will be created [default: .]
+    -b PATH     result dest dir, if not exists, will be created [default: benchmark_results]
     -h          display this msg
 Test:
     -T N        timeout after N seconds [default: 10]
@@ -273,6 +273,7 @@ def main():
 
     opt.iterations = int(args["-i"])
     opt.benchmark_dir = Path(args["-b"])
+    opt.benchmark_dir.parent.mkdir(exist_ok=True, parents=True)
     opt.bench_timeout = (opt.timeout + 1) * opt.iterations
 
     opt.print_thresh = int(args["-p"])
