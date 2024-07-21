@@ -21,7 +21,9 @@ Show:
 Notes:
     if no <impl-ver> is specified, all impl_versions will be used,
     `<executable> -x` is executed to find out the max impl version
-    when benchmarking, (timeout + 1) * iterations will be used as timeout
+
+    when benchmarking, (timeout + 1) * iterations will be used as bench_timeout for
+    `<executable> ... -B`, if bench_timeout hit -> value of timeout set in data
 """
 
 
@@ -51,6 +53,7 @@ class Opt:
     # bench
     benchmark_dir: Path = field(init=False)
     iterations: int = field(init=False)
+    bench_timeout: int = field(init=False)
 
     # test
     max_error: float = field(init=False)
@@ -128,13 +131,13 @@ def exec_bench(a: Path, b: Path, impl_version: int) -> float:
             capture_output=True,
             text=True,
             check=True,
-            timeout=opt.timeout
+            timeout=opt.bench_timeout
         )
 
     except subprocess.TimeoutExpired as e:
         eprint(f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n")
         eprint_std_out_err(e)
-        return float("nan")
+        return opt.timeout
 
     except subprocess.CalledProcessError as e:
         eprint("\n---------------------\nFAILED")
@@ -270,6 +273,7 @@ def main():
 
     opt.iterations = int(args["-i"])
     opt.benchmark_dir = Path(args["-b"])
+    opt.bench_timeout = (opt.timeout + 1) * opt.iterations
 
     opt.print_thresh = int(args["-p"])
     opt.max_error = float(args["-e"])
@@ -283,7 +287,6 @@ def main():
     if args["test"]:
         test()
     elif args["bench"]:
-        opt.timeout = (opt.timeout + 1) * opt.iterations
         bench()
     elif args["show"]:
         show()
