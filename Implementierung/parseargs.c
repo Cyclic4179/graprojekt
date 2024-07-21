@@ -40,7 +40,8 @@ void print_help(const char* pname) {
     // clang-format on
 
     print_usage(pname);
-    fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_IMPL_VERSION, DEFAULT_ITERATIONS, DEFAULT_EQ_MAX_DIFF, pname, pname, pname, pname);
+    fprintf(stderr, help_msg, MAX_IMPL_VERSION, DEFAULT_IMPL_VERSION, DEFAULT_ITERATIONS, DEFAULT_EQ_MAX_DIFF, pname,
+            pname, pname, pname);
 }
 
 float parse_float(char opt, const char* pname) {
@@ -88,15 +89,13 @@ struct ARGS parse_args(int argc, char** argv) {
     }
 
     int opt;
-    struct ARGS parsed_args = {
-        .a = NULL,
-        .b = NULL,
-        .out = NULL,
-        .impl_version = 0,
-        .action = MULT,
-        .iterations = 3,
-        .eq_max_diff = DEFAULT_EQ_MAX_DIFF
-    };
+    struct ARGS parsed_args = {.a = NULL,
+                               .b = NULL,
+                               .out = NULL,
+                               .impl_version = 0,
+                               .action = MULT,
+                               .iterations = 3,
+                               .eq_max_diff = DEFAULT_EQ_MAX_DIFF};
 
     static struct option long_opts[] = {
         {"help", no_argument, NULL, 'h'}, {0, 0, 0, 0}  // required (man 3 getopt_long)
@@ -114,7 +113,7 @@ struct ARGS parse_args(int argc, char** argv) {
                 break;
             case 'B':
                 parsed_args.action = BENCH;
-                //parsed_args.timeit = true;
+                // parsed_args.timeit = true;
                 if (optarg) {
                     parsed_args.iterations = parse_int('B', pname);
                     if (parsed_args.iterations < 0) {

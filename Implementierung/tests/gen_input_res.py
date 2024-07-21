@@ -203,35 +203,99 @@ def xxx(
 
 
 def default():
-    xxx("d1", n=40, k=40, m=40,
-        no_non_zero_a=40, no_non_zero_b=40,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("d2", n=110, k=110, m=110,
-        no_non_zero_a=110, no_non_zero_b=110,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("d3", n=200, k=200, m=200,
-        no_non_zero_a=200, no_non_zero_b=200,
-        max_val_a=100_000, max_val_b=100_000)
+    xxx(
+        "d1",
+        n=40,
+        k=40,
+        m=40,
+        no_non_zero_a=40,
+        no_non_zero_b=40,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "d2",
+        n=110,
+        k=110,
+        m=110,
+        no_non_zero_a=110,
+        no_non_zero_b=110,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "d3",
+        n=200,
+        k=200,
+        m=200,
+        no_non_zero_a=200,
+        no_non_zero_b=200,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
 
-    xxx("ds1", n=150, k=150, m=150,
-        no_non_zero_a=80, no_non_zero_b=80,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("ds2", n=300, k=300, m=300,
-        no_non_zero_a=150, no_non_zero_b=150,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("ds3", n=700, k=700, m=700,
-        no_non_zero_a=400, no_non_zero_b=400,
-        max_val_a=100_000, max_val_b=100_000)
+    xxx(
+        "ds1",
+        n=150,
+        k=150,
+        m=150,
+        no_non_zero_a=80,
+        no_non_zero_b=80,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "ds2",
+        n=300,
+        k=300,
+        m=300,
+        no_non_zero_a=150,
+        no_non_zero_b=150,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "ds3",
+        n=700,
+        k=700,
+        m=700,
+        no_non_zero_a=400,
+        no_non_zero_b=400,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
 
-    xxx("s1", n=400, k=3000, m=400,
-        no_non_zero_a=10, no_non_zero_b=10,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("s2", n=1000, k=30000, m=1000,
-        no_non_zero_a=8, no_non_zero_b=8,
-        max_val_a=100_000, max_val_b=100_000)
-    xxx("s3", n=10_000, k=100_000, m=10_000,
-        no_non_zero_a=1, no_non_zero_b=1,
-        max_val_a=100, max_val_b=100)
+    xxx(
+        "s1",
+        n=400,
+        k=3000,
+        m=400,
+        no_non_zero_a=10,
+        no_non_zero_b=10,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "s2",
+        n=1000,
+        k=30000,
+        m=1000,
+        no_non_zero_a=8,
+        no_non_zero_b=8,
+        max_val_a=100_000,
+        max_val_b=100_000,
+    )
+    xxx(
+        "s3",
+        n=10_000,
+        k=100_000,
+        m=10_000,
+        no_non_zero_a=1,
+        no_non_zero_b=1,
+        max_val_a=100,
+        max_val_b=100,
+    )
+
 
 def rd_gen():
     """random generate a, b, res according to opts"""
@@ -243,10 +307,17 @@ def rd_gen():
         nonzero_a = randint(0, max(min(k, opt.max_no_non_zero), opt.min_no_non_zero))
         nonzero_b = randint(0, max(min(m, opt.max_no_non_zero), opt.min_no_non_zero))
 
-        xxx(str(i + 1), n=n, k=k, m=m,
-            no_non_zero_a=nonzero_a, no_non_zero_b=nonzero_b,
-            max_val_a=opt.max_val, max_val_b=opt.max_val,
-            floats=opt.floats)
+        xxx(
+            str(i + 1),
+            n=n,
+            k=k,
+            m=m,
+            no_non_zero_a=nonzero_a,
+            no_non_zero_b=nonzero_b,
+            max_val_a=opt.max_val,
+            max_val_b=opt.max_val,
+            floats=opt.floats,
+        )
 
 
 def main():
@@ -266,7 +337,7 @@ def main():
 
     opt.floats = args["-f"]
 
-    #print(args)
+    # print(args)
 
     if args["rd"]:
         rd_gen()
@@ -277,74 +348,69 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-
-    #xxx("4", n=100, k=100, m=100,
+    # xxx("4", n=100, k=100, m=100,
     #    no_non_zero_a=80, no_non_zero_b=80,
     #    max_val_a=99, max_val_b=99)
 
-    #xxx("5", n=9, k=9, m=9,
+    # xxx("5", n=9, k=9, m=9,
     #    no_non_zero_a=4, no_non_zero_b=4,
     #    max_val_a=opt.max_val, max_val_b=opt.max_val)
 
-    #xxx("6", n=4, k=4, m=4,
+    # xxx("6", n=4, k=4, m=4,
     #    no_non_zero_a=1, no_non_zero_b=1,
     #    max_val_a=99, max_val_b=99,
     #    floats=True)
 
-    #xxx("7", n=9, k=9, m=9,
+    # xxx("7", n=9, k=9, m=9,
     #    no_non_zero_a=4, no_non_zero_b=4,
     #    max_val_a=99, max_val_b=99,
     #    floats=True)
 
-    #xxx("8", n=9, k=9, m=9,
+    # xxx("8", n=9, k=9, m=9,
     #    no_non_zero_a=4, no_non_zero_b=4,
     #    max_val_a=opt.max_val, max_val_b=opt.max_val,
     #    floats=True)
 
-    #xxx("hu-sp", n=100_000, k=100_000, m=100_000,
+    # xxx("hu-sp", n=100_000, k=100_000, m=100_000,
     #    no_non_zero_a=5, no_non_zero_b=5,
     #    max_val_a=100, max_val_b=100)
 
-    #xxx("v", n=100, k=10000, m=80,
+    # xxx("v", n=100, k=10000, m=80,
     #    no_non_zero_a=80, no_non_zero_b=2,
     #    max_val_a=1_000_000_000, max_val_b=1_000_000_000)
 
-
-    #def d(i):
+    # def d(i):
     #    xxx(f"d{i}", n=i, k=i, m=i,
     #        no_non_zero_a=i, no_non_zero_b=i,
     #        max_val_a=100_000, max_val_b=100_000)
-    #xxx("1", n=2, k=2, m=3,
+    # xxx("1", n=2, k=2, m=3,
     #    no_non_zero_a=1, no_non_zero_b=1,
     #    max_val_a=100, max_val_b=100)
 
-    #xxx("2", n=1, k=100, m=80,
+    # xxx("2", n=1, k=100, m=80,
     #    no_non_zero_a=80, no_non_zero_b=2,
     #    max_val_a=1, max_val_b=1)
 
-
     ### v0 - v2
-    #d(40)
-    #d(80)
-    #d(120)
-    #d(160)
-    #d(200)
+    # d(40)
+    # d(80)
+    # d(120)
+    # d(160)
+    # d(200)
 
-    #xxx("ds300", n=300, k=300, m=300,
+    # xxx("ds300", n=300, k=300, m=300,
     #    no_non_zero_a=150, no_non_zero_b=150,
     #    max_val_a=100_000, max_val_b=100_000)
 
-    #xxx("s30", n=30, k=3000, m=30,
+    # xxx("s30", n=30, k=3000, m=30,
     #    no_non_zero_a=30, no_non_zero_b=2,
     #    max_val_a=100_000, max_val_b=100_000)
 
-    #xxx("s-hu", n=1000, k=1000, m=1000,
+    # xxx("s-hu", n=1000, k=1000, m=1000,
     #    no_non_zero_a=3, no_non_zero_b=3,
     #    max_val_a=100, max_val_b=100)
 
-
     ### v0 - v3
-    #d(40)
-    #d(110)
-    #d(200)
+    # d(40)
+    # d(110)
+    # d(200)

@@ -3,11 +3,7 @@
 
 #include <stdbool.h>
 
-enum ACTION {
-    MULT,
-    BENCH,
-    CHECK_EQ
-};
+enum ACTION { MULT, BENCH, CHECK_EQ };
 
 // struct that stores validated and parsed argument info
 struct ARGS {

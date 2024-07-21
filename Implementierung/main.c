@@ -9,10 +9,8 @@
 #include "parseargs.h"
 #include "util.h"
 
-
 /// @brief reads ellpack from path (if path is NULL from stdin); called to read a and b
 struct ELLPACK helper_read_and_close(char* path);
-
 
 int main(int argc, char** argv) {
     struct ARGS args = parse_args(argc, argv);
@@ -22,11 +20,10 @@ int main(int argc, char** argv) {
     pdebug("\tb: '%s'\n", args.b);
     pdebug("\tout: '%s'\n", args.out);
     pdebug("\timpl_version: '%d'\n", args.impl_version);
-    pdebug("\taction: '%s'\n",
-            args.action == MULT ? "mult" :
-            args.action == BENCH ? "bench" :
-            args.action == CHECK_EQ ? "check eq" :
-            "!! undefined !!");
+    pdebug("\taction: '%s'\n", args.action == MULT       ? "mult"
+                               : args.action == BENCH    ? "bench"
+                               : args.action == CHECK_EQ ? "check eq"
+                                                         : "!! undefined !!");
     pdebug("\titerations: '%d'\n", args.iterations);
     pdebug("\tmax_diff: '%f'\n", args.eq_max_diff);
 
@@ -72,7 +69,7 @@ int main(int argc, char** argv) {
 
             FILE* file_out;
             if (args.out != NULL) {
-                file_out = (FILE*) abortIfNULL(fopen(args.out, "w"));
+                file_out = (FILE*)abortIfNULL(fopen(args.out, "w"));
             } else {
                 file_out = stdout;
             }
@@ -118,12 +115,11 @@ int main(int argc, char** argv) {
     exit(EXIT_SUCCESS);
 }
 
-
 struct ELLPACK helper_read_and_close(char* path) {
     FILE* file;
 
     if (path != NULL) {
-        file = (FILE*) abortIfNULL(fopen(path, "r"));
+        file = (FILE*)abortIfNULL(fopen(path, "r"));
         pdebug_(" from file: '%s'\n", path);
     } else {
         file = stdin;

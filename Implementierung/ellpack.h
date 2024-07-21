@@ -31,7 +31,6 @@ struct DENSE_MATRIX {
 /// @param max_diff maximum absolute error
 void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff);
 
-
 /// @brief convenience/wrapper function to free ELLPACK struct
 __attribute__((always_inline)) inline void elpk_free(struct ELLPACK e) {
     free(e.values);

@@ -63,6 +63,7 @@ class Opt:
     csv_files: str = field(init=False)
     show_plot: bool = field(init=False)
 
+
 opt = Opt()
 
 
@@ -71,9 +72,13 @@ def eprint(*args, **kvargs):
     print(*args, **kvargs, file=sys.stderr)
 
 
-def eprint_std_out_err(o: subprocess.CompletedProcess[str] |
-                       subprocess.TimeoutExpired |
-                       subprocess.CalledProcessError):
+def eprint_std_out_err(
+    o: (
+        subprocess.CompletedProcess[str]
+        | subprocess.TimeoutExpired
+        | subprocess.CalledProcessError
+    ),
+):
     """helper for printing stdout and stderr streams"""
     if o.stdout:
         eprint(f"stdout: >>>>\n{str(o.stdout)}<<<<\n")
@@ -108,7 +113,7 @@ def get_max_impl_ver():
             capture_output=True,
             text=True,
             check=True,
-            timeout=1
+            timeout=1,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
         eprint("failed to get max impl version")
@@ -127,15 +132,25 @@ def exec_bench(a: Path, b: Path, impl_version: int) -> float:
     # {executable} -a {a} -b {b} -B{iterations} | awk '{{print $6}}'
     try:
         result = subprocess.run(
-            [opt.executable, "-a", a, "-b", b, f"-V{impl_version}", f"-B{opt.iterations}"],
+            [
+                opt.executable,
+                "-a",
+                a,
+                "-b",
+                b,
+                f"-V{impl_version}",
+                f"-B{opt.iterations}",
+            ],
             capture_output=True,
             text=True,
             check=True,
-            timeout=opt.bench_timeout
+            timeout=opt.bench_timeout,
         )
 
     except subprocess.TimeoutExpired as e:
-        eprint(f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n")
+        eprint(
+            f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n"
+        )
         eprint_std_out_err(e)
         return opt.timeout
 
@@ -151,9 +166,7 @@ def exec_bench(a: Path, b: Path, impl_version: int) -> float:
 
 def exec_test(a: Path, b: Path, res: Path, impl_version: int):
     """execute test"""
-    eprint(
-        f"run: {opt.executable} -a {a} -b {b} -V{impl_version}"
-    )
+    eprint(f"run: {opt.executable} -a {a} -b {b} -V{impl_version}")
 
     try:
         result = subprocess.run(
@@ -161,10 +174,12 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
             capture_output=True,
             text=True,
             check=True,
-            timeout=opt.timeout
+            timeout=opt.timeout,
         )
     except subprocess.TimeoutExpired as e:
-        eprint(f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n")
+        eprint(
+            f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n"
+        )
         eprint_std_out_err(e)
         return
 
@@ -173,9 +188,7 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
         eprint_std_out_err(e)
         sys.exit(1)
 
-    eprint(
-        f"check result: {opt.executable} -a {res} -e{opt.max_error} <<<\"$RESULT\""
-    )
+    eprint(f'check result: {opt.executable} -a {res} -e{opt.max_error} <<<"$RESULT"')
 
     try:
         subprocess.run(
@@ -256,19 +269,21 @@ def show():
         print("\n")
 
         if opt.show_plot:
-            cmap = ListedColormap(["#0343df", "#e50000", "#ffff14", "#929591", "#00ff5a", "#ffaa00"])
+            cmap = ListedColormap(
+                ["#0343df", "#e50000", "#ffff14", "#929591", "#00ff5a", "#ffaa00"]
+            )
             ax = df.plot.bar(x="tests", colormap=cmap)
 
             ax.set_xlabel(None)
-            ax.set_ylabel('time in s')
-            ax.set_title('benchmark')
+            ax.set_ylabel("time in s")
+            ax.set_title("benchmark")
 
             plt.show()
 
 
 def main():
     args = docopt(__doc__)
-    #print(args)
+    # print(args)
 
     opt.executable = args["<executable>"]
     opt.impl_versions = args["<impl-ver>"]

@@ -19,7 +19,6 @@ __attribute__((always_inline)) inline void* __abort_null(void* value, const char
 #define abortIfNULL(i) __abort_null(i, #i, __func__, __FILE__, __LINE__, "")
 #define abortIfNULL_msg(i, j) __abort_null(i, #i, __func__, __FILE__, __LINE__, j)
 
-
 #define DEBUG_OUTPUT_MAX_SIZE 200
 
 #ifdef DEBUG

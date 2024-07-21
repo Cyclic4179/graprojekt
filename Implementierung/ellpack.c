@@ -1,11 +1,11 @@
 #include "ellpack.h"
-#include "util.h"
 
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "util.h"
 
 /// @brief checks wether two ELLPACK matrices are equal (enough)
 /// @param a matrix a
@@ -18,9 +18,10 @@ void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
     char s_max_diff[256];
 
     if (a.noCols != b.noCols || a.noRows != b.noRows || a.maxNoNonZero != b.maxNoNonZero) {
-        printf("dimensions or max number of non-zero not equal: "
-               "a(%lu x %lu - nonz: %lu) vs b(%lu x %lu - nonz: %lu)\n",
-               a.noRows, a.noCols, a.maxNoNonZero, b.noRows, b.noCols, b.maxNoNonZero);
+        printf(
+            "dimensions or max number of non-zero not equal: "
+            "a(%lu x %lu - nonz: %lu) vs b(%lu x %lu - nonz: %lu)\n",
+            a.noRows, a.noCols, a.maxNoNonZero, b.noRows, b.noCols, b.maxNoNonZero);
         exit(EXIT_FAILURE);
     }
 
