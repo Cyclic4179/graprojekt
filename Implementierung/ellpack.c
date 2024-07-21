@@ -34,8 +34,8 @@ void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
 
             printf(
                 "values or index at entry '%lu' greater than "
-                "tolerated error (%s): a(val: %s, rowind: %lu) vs b(val: %s, rowind: %lu) \n",
-                i, s_max_diff, s1, a.indices[i], s2, b.indices[i]);
+                "tolerated error (%s): diff %f: a(val: %s, rowind: %lu) vs b(val: %s, rowind: %lu) \n",
+                i, s_max_diff, absdiff, s1, a.indices[i], s2, b.indices[i]);
 
             exit(EXIT_FAILURE);
         }

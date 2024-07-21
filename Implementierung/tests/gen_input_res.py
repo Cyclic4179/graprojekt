@@ -184,6 +184,8 @@ def xxx(
     """
     create, multiply, print matrices
     """
+    print(f"generating {dest}")
+
     a = create(n, k, no_non_zero_a, min_val_a, max_val_a, floats)
     b = create(k, m, no_non_zero_b, min_val_b, max_val_b, floats)
     res = a @ b
@@ -195,6 +197,8 @@ def xxx(
     write_elpk(Path(dest, "a"), a, no_non_zero_a)
     write_elpk(Path(dest, "b"), b, no_non_zero_b)
     write_elpk(Path(dest, "res"), res, no_non_zero_res)
+
+    print("finished")
 
 
 def default():

@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
 
 """Usage:
-    bench.py test <executable> <impl_ver>... [options] [-p N -e FLOAT] -t PATH...
-    bench.py bench <executable> <impl_ver>... [options] [-i N] -t PATH...
+    bench.py test <executable> [<impl_ver>...] [options] [-p N -e FLOAT] -t PATH...
+    bench.py bench <executable> [<impl_ver>...] [options] [-i N] -t PATH...
 
 Options:
     -t PATH     dir with tests (eg: tests/generated)
     -b PATH     result dest dir, if not exists, will be created [default: .]
     -h          display this msg
 Test:
+    -T N        timeout after N seconds [default: 10]
     -p N        print thresh (don't print content of files more than N chars) [default: 200]
     -e FLOAT    max error passed when testing [default: 0.001]
 Bench:
     -i N        iterations [default: 3]
+
+Notes:
+    if no <impl_ver> is specified, all impl_versions will be used,
+    `<executable> -x` is executed to find out the max impl version
+    when benchmarking, (timeout + 1) * iterations will be used as timeout
 """
 
 
 import sys
 import subprocess
 import re
-import atexit
-import tempfile
+#import atexit
+#import tempfile
 from pathlib import Path
 import datetime
 import pandas as pd
@@ -37,6 +43,8 @@ class Opt:
 
     test_dirs: list[Path] = field(init=False)
 
+    timeout: int = field(init=False)
+
     # bench
     benchmark_dir: Path = field(init=False)
     iterations: int = field(init=False)
@@ -44,7 +52,7 @@ class Opt:
     # test
     max_error: float = field(init=False)
     print_thresh: int = field(init=False)
-    tmp_file: Path = field(init=False)
+    #tmp_file: Path = field(init=False)
 
 
 opt = Opt()
@@ -55,35 +63,77 @@ def eprint(*args, **kvargs):
     print(*args, **kvargs, file=sys.stderr)
 
 
-def eprint_file_if_not_too_large(path: Path):
+def eprint_std_out_err(o: subprocess.CompletedProcess[str] |
+                       subprocess.TimeoutExpired |
+                       subprocess.CalledProcessError):
+    """helper for printing stdout and stderr streams"""
+    if o.stdout:
+        eprint(f"stdout: >>>>\n{str(o.stdout)}<<<<\n")
+    if o.stderr:
+        eprint(f"stderr: >>>>\n{str(o.stderr)}<<<<\n")
+
+
+def eprint_if_short(s: str):
+    """print s if not longer than print_thresh"""
+    if len(s) > opt.print_thresh:
+        eprint("...too large")
+    else:
+        eprint(s)
+
+
+def eprint_file_if_small(path: Path):
     """print file content if char count <= opt.print_thresh"""
     with open(path, "r", encoding="ascii") as f:
-        s = f.read()
-        if len(s) > opt.print_thresh:
-            eprint("...file too large")
-        else:
-            eprint(s)
+        eprint_if_short(f.read())
+
+
+def get_max_impl_ver():
+    """
+    get max impl version from executable (can be retrieved with -x)
+    relies solely on opt.executable
+    """
+    eprint(f"run: {opt.executable} -x")
+
+    try:
+        result = subprocess.run(
+            [opt.executable, "-x"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=1
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        eprint("failed to get max impl version")
+        eprint_std_out_err(e)
+        sys.exit(1)
+
+    eprint("...finished")
+
+    return int(result.stdout)
 
 
 def exec_bench(a: Path, b: Path, impl_version: int) -> float:
     """execute benchmark and get time"""
     eprint(f"run: {opt.executable} -a {a} -b {b} -V{impl_version} -B{opt.iterations}")
 
-    # f"{executable} -a {a} -b {b} -B{iterations} | awk '{{print $6}}'"
-    result = subprocess.run(
-        [opt.executable, "-a", a, "-b", b, f"-V{impl_version}", f"-B{opt.iterations}"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
+    # {executable} -a {a} -b {b} -B{iterations} | awk '{{print $6}}'
     try:
-        result.check_returncode()
-    except subprocess.CalledProcessError:
-        eprint("\n---------------------\nFAILED")
-        eprint(
-            f"stdout: >>>>\n{result.stdout}<<<<\n\nstderr: >>>>\n{result.stderr}<<<<"
+        result = subprocess.run(
+            [opt.executable, "-a", a, "-b", b, f"-V{impl_version}", f"-B{opt.iterations}"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=opt.timeout
         )
+
+    except subprocess.TimeoutExpired as e:
+        eprint(f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n")
+        eprint_std_out_err(e)
+        return float("nan")
+
+    except subprocess.CalledProcessError as e:
+        eprint("\n---------------------\nFAILED")
+        eprint_std_out_err(e)
         sys.exit(1)
 
     eprint("...finished")
@@ -94,49 +144,56 @@ def exec_bench(a: Path, b: Path, impl_version: int) -> float:
 def exec_test(a: Path, b: Path, res: Path, impl_version: int):
     """execute test"""
     eprint(
-        f"run: {opt.executable} -a {a} -b {b} -o {opt.tmp_file} -V{impl_version} -B{opt.iterations}"
+        f"run: {opt.executable} -a {a} -b {b} -V{impl_version} -B{opt.iterations}"
     )
 
-    result = subprocess.run(
-        [opt.executable, "-a", a, "-b", b, "-o", opt.tmp_file, f"-V{impl_version}"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
     try:
-        result.check_returncode()
-    except subprocess.CalledProcessError:
-        eprint("\n---------------------\nFAILED")
-        eprint(
-            f"stdout: >>>>\n{result.stdout}<<<<\n\nstderr: >>>>\n{result.stderr}<<<<"
+        result = subprocess.run(
+            [opt.executable, "-a", a, "-b", b, f"-V{impl_version}"],
+            #[opt.executable, "-a", a, "-b", b, "-o", opt.tmp_file, f"-V{impl_version}"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=opt.timeout
         )
+    except subprocess.TimeoutExpired as e:
+        eprint(f"\n---------------------\nFAILED: TIMEOUT after {opt.timeout} seconds\n")
+        eprint_std_out_err(e)
+        return
+
+    except subprocess.CalledProcessError as e:
+        eprint("\n---------------------\nFAILED")
+        eprint_std_out_err(e)
         sys.exit(1)
 
     eprint(
-        f"check result: {opt.executable} -a {res} -b {opt.tmp_file} -e{opt.max_error}"
-    )
-    result_eq = subprocess.run(
-        [opt.executable, "-a", res, "-b", opt.tmp_file, f"-e{opt.max_error}"],
-        capture_output=True,
-        text=True,
-        check=False,
+        f"check result: {opt.executable} -a {res} -e{opt.max_error} <<<$RESULT"
+        #f"check result: {opt.executable} -a {res} -b {opt.tmp_file} -e{opt.max_error}"
     )
 
     try:
-        result_eq.check_returncode()
-    except subprocess.CalledProcessError:
+        subprocess.run(
+            [opt.executable, "-a", res, f"-e{opt.max_error}"],
+            #[opt.executable, "-a", res, "-b", opt.tmp_file, f"-e{opt.max_error}"],
+            input=result.stdout,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=1,
+        )
+    except subprocess.CalledProcessError as e:
         eprint("\n---------------------\nFAILED")
         eprint("\nfactor a:")
-        eprint_file_if_not_too_large(a)
+        eprint_file_if_small(a)
         eprint("\nfactor b:")
-        eprint_file_if_not_too_large(b)
+        eprint_file_if_small(b)
         eprint("\nexpected:")
-        eprint_file_if_not_too_large(res)
+        eprint_file_if_small(res)
         eprint("\nbut got:")
-        eprint_file_if_not_too_large(opt.tmp_file)
-        eprint(
-            f"\nstdout: >>>>\n{result_eq.stdout}<<<<\n\nstderr: >>>>\n{result_eq.stderr}<<<<"
-        )
+        eprint_if_short(result.stdout)
+        #eprint_file_if_small(opt.tmp_file)
+        eprint("\n")
+        eprint_std_out_err(e)
         sys.exit(1)
 
     eprint(" -> PASSED")
@@ -166,7 +223,7 @@ def bench():
 
     timestr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     dest = opt.benchmark_dir.joinpath(
-        f"bench_v{'-'.join(opt.impl_versions)}_{timestr}.csv"
+        f"bench_v{'-v'.join(opt.impl_versions)}_{timestr}.csv"
     )
     print("result in:", dest)
     df.to_csv(dest)
@@ -193,19 +250,24 @@ def main():
     opt.impl_versions = args["<impl_ver>"]
 
     opt.test_dirs = list(map(Path, args["-t"]))
+    opt.timeout = int(args["-T"])
 
     opt.iterations = int(args["-i"])
     opt.benchmark_dir = Path(args["-b"])
     opt.print_thresh = int(args["-p"])
     opt.max_error = float(args["-e"])
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-        opt.tmp_file = Path(tmpfile.name)
-    atexit.register(opt.tmp_file.unlink)
+    #with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+    #    opt.tmp_file = Path(tmpfile.name)
+    #atexit.register(opt.tmp_file.unlink)
+
+    if len(opt.impl_versions) == 0:
+        opt.impl_versions = list(map(str, range(1 + get_max_impl_ver())))
 
     if args["test"]:
         test()
     elif args["bench"]:
+        opt.timeout = (opt.timeout + 1) * opt.iterations
         bench()
 
 

@@ -1,5 +1,5 @@
 {
-  description = "python packages test";
+  description = "python packages devenv";
 
   outputs =
     {
