@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 """Usage:
-    bench.py test <executable> [<impl_ver>...] [options] [-p N -e FLOAT] -t PATH...
-    bench.py bench <executable> [<impl_ver>...] [options] [-i N] -t PATH...
+    bench.py test <executable> [<impl-ver>...] [options] [-p N -e FLOAT] -t PATH...
+    bench.py bench <executable> [<impl-ver>...] [options] [-i N] -t PATH...
+    bench.py show <csv-file> [-s]
 
 Options:
     -t PATH     dir with tests (eg: tests/generated)
@@ -14,9 +15,11 @@ Test:
     -e FLOAT    max error passed when testing [default: 0.001]
 Bench:
     -i N        iterations [default: 3]
+Show:
+    -s          show plot
 
 Notes:
-    if no <impl_ver> is specified, all impl_versions will be used,
+    if no <impl-ver> is specified, all impl_versions will be used,
     `<executable> -x` is executed to find out the max impl version
     when benchmarking, (timeout + 1) * iterations will be used as timeout
 """
@@ -25,11 +28,11 @@ Notes:
 import sys
 import subprocess
 import re
-#import atexit
-#import tempfile
 from pathlib import Path
 import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 from docopt import docopt
 from dataclasses import dataclass, field
 
@@ -52,8 +55,10 @@ class Opt:
     # test
     max_error: float = field(init=False)
     print_thresh: int = field(init=False)
-    #tmp_file: Path = field(init=False)
 
+    # show
+    csv_file: str = field(init=False)
+    show_plot: bool = field(init=False)
 
 opt = Opt()
 
@@ -150,7 +155,6 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
     try:
         result = subprocess.run(
             [opt.executable, "-a", a, "-b", b, f"-V{impl_version}"],
-            #[opt.executable, "-a", a, "-b", b, "-o", opt.tmp_file, f"-V{impl_version}"],
             capture_output=True,
             text=True,
             check=True,
@@ -168,13 +172,11 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
 
     eprint(
         f"check result: {opt.executable} -a {res} -e{opt.max_error} <<<$RESULT"
-        #f"check result: {opt.executable} -a {res} -b {opt.tmp_file} -e{opt.max_error}"
     )
 
     try:
         subprocess.run(
             [opt.executable, "-a", res, f"-e{opt.max_error}"],
-            #[opt.executable, "-a", res, "-b", opt.tmp_file, f"-e{opt.max_error}"],
             input=result.stdout,
             capture_output=True,
             text=True,
@@ -191,7 +193,6 @@ def exec_test(a: Path, b: Path, res: Path, impl_version: int):
         eprint_file_if_small(res)
         eprint("\nbut got:")
         eprint_if_short(result.stdout)
-        #eprint_file_if_small(opt.tmp_file)
         eprint("\n")
         eprint_std_out_err(e)
         sys.exit(1)
@@ -211,7 +212,7 @@ def bench():
 
     res = {
         f"v{v}": {
-            f"t{p.name}": exec_bench(p.joinpath("a"), p.joinpath("b"), v) for p in tests
+            f"{p.name}": exec_bench(p.joinpath("a"), p.joinpath("b"), v) for p in tests
         }
         for v in opt.impl_versions
     }
@@ -242,26 +243,41 @@ def test():
     eprint("SUCCESS")
 
 
+def show():
+    df = pd.read_csv(opt.csv_file)
+    print(df)
+
+    if opt.show_plot:
+        cmap = ListedColormap(["#0343df", "#e50000", "#ffff14", "#929591"])
+        ax = df.plot.bar(x="tests", colormap=cmap)
+
+        ax.set_xlabel(None)
+        ax.set_ylabel('time in s')
+        ax.set_title('benchmark')
+
+        plt.show()
+
+
 def main():
     args = docopt(__doc__)
-    # print(args)
+    print(args)
 
     opt.executable = args["<executable>"]
-    opt.impl_versions = args["<impl_ver>"]
+    opt.impl_versions = args["<impl-ver>"]
 
     opt.test_dirs = list(map(Path, args["-t"]))
     opt.timeout = int(args["-T"])
 
     opt.iterations = int(args["-i"])
     opt.benchmark_dir = Path(args["-b"])
+
     opt.print_thresh = int(args["-p"])
     opt.max_error = float(args["-e"])
 
-    #with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-    #    opt.tmp_file = Path(tmpfile.name)
-    #atexit.register(opt.tmp_file.unlink)
+    opt.csv_file = args["<csv-file>"]
+    opt.show_plot = args["-s"]
 
-    if len(opt.impl_versions) == 0:
+    if len(opt.impl_versions) == 0 and opt.executable:
         opt.impl_versions = list(map(str, range(1 + get_max_impl_ver())))
 
     if args["test"]:
@@ -269,6 +285,8 @@ def main():
     elif args["bench"]:
         opt.timeout = (opt.timeout + 1) * opt.iterations
         bench()
+    elif args["show"]:
+        show()
 
 
 if __name__ == "__main__":
