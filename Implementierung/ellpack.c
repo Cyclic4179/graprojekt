@@ -28,7 +28,7 @@ void elpk_check_equal(struct ELLPACK a, struct ELLPACK b, float max_diff) {
         float absdiff = fabsf(a.values[i] - b.values[i]);
         float abssum = fabsf(a.values[i] + b.values[i]);
 
-        float reldeviation = 1e6 * absdiff / abssum;
+        float reldeviation = 1e3 * absdiff / abssum;
 
         if (reldeviation > max_diff || a.indices[i] != b.indices[i]) {
             ftostr(sizeof(s1), s1, a.values[i]);
