@@ -19,7 +19,7 @@ void matr_mult_ellpack_V1(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }
@@ -65,7 +65,7 @@ void matr_mult_ellpack(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }
@@ -116,7 +116,7 @@ void matr_mult_ellpack_V2(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }
@@ -164,7 +164,7 @@ void matr_mult_ellpack_V3(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }
@@ -204,7 +204,7 @@ void matr_mult_ellpack_V4(const void* a, const void* b, void* res) {
     validate_inputs(*(struct ELLPACK*)a, *(struct ELLPACK*)b);
     struct ELLPACK result;
     result = initialize_result(*(struct ELLPACK*)a, *(struct ELLPACK*)b, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }
@@ -256,7 +256,7 @@ void matr_mult_ellpack_V5(const void* a, const void* b, void* res) {
     validate_inputs(left, right);
     struct ELLPACK result;
     result = initialize_result(left, right, result);
-    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 && (*(struct ELLPACK*)b).maxNoNonZero == 0) {
+    if ((*(struct ELLPACK*)a).maxNoNonZero == 0 || (*(struct ELLPACK*)b).maxNoNonZero == 0) {
         *(struct ELLPACK*)res = result;
         return;
     }

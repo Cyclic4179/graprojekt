@@ -82,9 +82,9 @@ float helper_read_float(const char* string, long* pos, char end, char* field_for
 void validate_matrix(const struct ELLPACK matrix) {
     uint64_t index = 0;
     int padding;  // works as boolean to check if padded value was found
-    for (uint64_t i = 0; i < matrix.noRows; i++) {
+    for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
         padding = 0;
-        for (uint64_t j = 0; j < matrix.maxNoNonZero; j++) {
+        for (uint64_t i = 0; i < matrix.noRows; i++) {
             uint64_t accessIndex = i * matrix.maxNoNonZero + j;
             if (matrix.indices[accessIndex] >= matrix.noCols) {
                 fprintf(stderr, "ERROR: Index %lu too large for a %lux%lu matrix.\n", matrix.indices[accessIndex],
@@ -169,8 +169,8 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     char s[256];        // buffer for storing a single float in nice format
 
     // print values
-    for (i = 0; i < matrix.noRows; i++) {
-        for (j = 0; j < matrix.maxNoNonZero; j++) {
+    for (j = 0; j < matrix.maxNoNonZero; j++) {
+        for (i = 0; i < matrix.noRows; i++) {
             val = matrix.values[index];
             absval = fabsf(val);
 
@@ -214,8 +214,8 @@ void elpk_write(struct ELLPACK matrix, FILE* file) {
     first = true;
 
     // print indices
-    for (i = 0; i < matrix.noRows; i++) {
-        for (j = 0; j < matrix.maxNoNonZero; j++) {
+    for (j = 0; j < matrix.maxNoNonZero; j++) {
+        for (i = 0; i < matrix.noRows; i++) {
             val = matrix.values[index];
             absval = val > 0 ? val : -val;
 
